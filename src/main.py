@@ -1,6 +1,6 @@
 import flet as ft
 from navbar import Navbar
-from grid2 import Grid
+from grid import Grid
 
 def main(page: ft.Page):
     page.title = "SeeLater"
