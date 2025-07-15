@@ -2,25 +2,20 @@ import subprocess
 import json
 import os
 import urllib.request
-from services.utils import hash_video_url
+import pathlib
+from services.utils import get_yt_url_code
 from models.video import Video
+from services.db_service import save_video, get_video_by_id
 
-CACHE_DIR = "./storage/data"
+CACHE_DIR = "./storage/data/videos_thumb"
+pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
 def get_video_info(video_url):
-    cache_key = hash_video_url(video_url)
-    cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
+    cache_key = get_yt_url_code(video_url)
 
-    if os.path.exists(cache_file):
-        with open(cache_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return Video(
-                id=cache_key,
-                title=data["title"],
-                uploader=data["uploader"],
-                view_count=data["view_count"],
-                thumbnail_path=data["thumbnail"]
-            )
+    existing = get_video_by_id(cache_key)
+    if existing:
+        return Video.from_dict(existing)
 
     try:
         result = subprocess.run(
@@ -35,21 +30,25 @@ def get_video_info(video_url):
         urllib.request.urlretrieve(thumb_url, thumb_path)
 
         info = {
+            "id": cache_key,
             "title": data.get("title"),
             "uploader": data.get("uploader"),
             "view_count": data.get("view_count"),
-            "thumbnail": thumb_path
+            "thumbnail_path": thumb_path,
+            "upload_date": data.get("timestamp"),
+            "duration": data.get("duration_string"),
+            "channel_id": data.get("channel_id"), 
         }
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(info, f, ensure_ascii=False, indent=2)
+        
+        save_video(info)
 
-        return Video(
-            id=cache_key,
-            title=info["title"],
-            uploader=info["uploader"],
-            view_count=info["view_count"],
-            thumbnail_path=info["thumbnail"]
-        )
+        return Video.from_dict(info)
+    
     except Exception as e:
         print("Erro ao obter info do vídeo:", e)
         return None
+
+def load_all_videos_from_db():
+    from services.db_service import get_all_videos
+    docs = get_all_videos()
+    return [Video.from_dict(doc) for doc in docs]
