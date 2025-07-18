@@ -1,7 +1,8 @@
 import flet as ft
+from models.video import Video
 
 class Card(ft.Container):
-    def __init__(self, video):
+    def __init__(self, video: Video):
         super().__init__()
         self.col = {"xs": 12, "sm": 6, "md": 4, "lg": 3}
         self.padding = 10

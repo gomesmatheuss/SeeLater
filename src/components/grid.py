@@ -1,22 +1,20 @@
 import flet as ft
-import json
-import os
 from services.video_service import get_video_info
-from video_card import Card
+from services.db_service import get_list_videos, get_all_videos
+from components.video_card import Card
 
 class Grid(ft.ResponsiveRow):
     def __init__(self):
         super().__init__()
         self.spacing = 10
         self.run_spacing = 20
-        self.CACHE_DIR = "./storage/data"
         self.create_cards()
 
     def create_cards(self):
-        with open(os.path.join(self.CACHE_DIR, "videos.json"), "r", encoding="utf-8") as f:
-            video_links = json.load(f)
+        # videos_links = get_list_videos()
+        videos_links = get_all_videos()
 
-        for url in video_links:
+        for url in videos_links:
             full_url = f"https://www.youtube.com/watch?v={url.get('id')}"
             video = get_video_info(full_url)
             if video:

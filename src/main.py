@@ -1,6 +1,18 @@
 import flet as ft
-from navbar import Navbar
-from grid import Grid
+from datetime import datetime
+from components.grid import Grid
+from components.navbar import Navbar
+from components.fab_button import FABButton
+
+class Tab:
+    def __init__(self, url: str, title: str, index: int, priority: str, create_at, tags=[], active=True):
+        self.url = url
+        self.title = title
+        self.index = index
+        self.priority = priority
+        self.create_at = create_at
+        self.tags = tags
+        self.active = active
 
 def main(page: ft.Page):
     page.title = "SeeLater"
@@ -14,7 +26,17 @@ def main(page: ft.Page):
 
     page.add(
         Navbar(),
-        Grid()
+        ft.Stack(
+            [
+                ft.Column([Grid()], expand=True),
+                ft.Container(
+                    FABButton(page),
+                    alignment = ft.alignment.bottom_right, 
+                    margin=20
+                )
+            ],
+            expand = True
+        )
     )
 
 ft.app(main)
