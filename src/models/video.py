@@ -32,5 +32,5 @@ class Video:
             "thumbnail_path": self.thumbnail_path,
             "upload_date": self.upload_date,
             "duration": self.duration,
-            "channel_id": self.channel_id,
+            "channel_id": self.channel_id
         }

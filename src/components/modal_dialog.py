@@ -6,8 +6,6 @@ class Dialog(ft.AlertDialog):
     def __init__(self):
         super().__init__()
         self.url_field = ft.TextField(label="URL do vídeo", autofocus=True)
-        self.title_field = ft.TextField(label="Título")
-        self.index_field = ft.TextField(label="Índice", input_filter=ft.NumbersOnlyInputFilter())
         self.priority_field = ft.Dropdown(
             label = "Prioridade",
             width = 300,
@@ -15,25 +13,38 @@ class Dialog(ft.AlertDialog):
                 ft.dropdown.Option("Alta"),
                 ft.dropdown.Option("Média"),
                 ft.dropdown.Option("Baixa"),
-            ]
+            ],
+            value = "Baixa"
         )
         self.tags_field = ft.TextField(label="Tags (separadas por vírgula)")
-        self.active_switch = ft.Switch(label="Ativo", value=True)
+        self.upload_button = ft.OutlinedButton(
+            text = "Selecione um arquivo", 
+            height = 30,
+            icon = ft.Icons.UPLOAD_FILE,
+            on_click = self.pick_files
+        )
+        self.pick_files_dialog = ft.FilePicker(on_result=self.pick_files_result)
+        self.selected_files = ft.Text(size=10, color=ft.Colors.GREEN)
 
         self.modal = True
         self.title = ft.Text("Adicionar novo vídeo")
         self.content = ft.Column(
             controls = [
                 self.url_field,
-                self.title_field,
-                self.index_field,
                 self.priority_field,
                 self.tags_field,
-                self.active_switch
+                ft.Divider(height=35),
+                ft.Row(
+                    [
+                        ft.Text("ou com .json"),
+                        self.upload_button
+                    ]
+                ),
+                self.selected_files
             ],
             tight = True,
-            height = 400,
-            width = 600
+            height = 250,
+            width = 400
         )
         self.actions = [
             ft.TextButton("Cancelar", on_click=self.close),
@@ -47,13 +58,30 @@ class Dialog(ft.AlertDialog):
 
     def save(self, e):
         new_tab = Tab(
-            url=self.url_field.value,
-            title=self.title_field.value,
-            index=int(self.index_field.value) if self.index_field.value else 0,
-            priority=self.priority_field.value,
-            create_at=datetime.now(),
-            tags=[tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
-            active=self.active_switch.value
+            url = self.url_field.value,
+            title = "",
+            index = int(self.index_field.value) if self.index_field.value else 0,
+            priority = self.priority_field.value,
+            create_at = datetime.now(),
+            tags = [tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
+            active = True
         )
         print("Novo vídeo adicionado:", new_tab.__dict__)
         self.close(e)
+
+    def pick_files(self, e):
+        self.pick_files_dialog.pick_files(allowed_extensions=["json", "txt"], allow_multiple=False)
+
+    def pick_files_result(self, e: ft.FilePickerResultEvent):
+        self.selected_files.value = (
+            f"{e.files[0].path}" if e.files else ""
+        )
+        self.selected_files.update()
+
+    def did_mount(self):
+        self.page.overlay.append(self.pick_files_dialog)
+        self.page.update()
+
+    def will_unmount(self):
+        self.page.overlay.remove(self.pick_files_dialog)
+        self.page.update()
