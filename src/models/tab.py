@@ -15,3 +15,14 @@ class Tab:
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
+
+    def to_dict(self):
+        return {
+            "url": self.url,
+            "title": self.title,
+            "index": self.index,
+            "priority": self.priority,
+            "create_at": self.create_at,
+            "tags": self.tags,
+            "active": self.active
+        }

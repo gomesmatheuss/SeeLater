@@ -1,5 +1,6 @@
 import flet as ft
 from models.tab import Tab
+from services.load_from_json import process_json
 from datetime import datetime
 
 class Dialog(ft.AlertDialog):
@@ -60,7 +61,7 @@ class Dialog(ft.AlertDialog):
         new_tab = Tab(
             url = self.url_field.value,
             title = "",
-            index = int(self.index_field.value) if self.index_field.value else 0,
+            index = 0,
             priority = self.priority_field.value,
             create_at = datetime.now(),
             tags = [tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
@@ -74,9 +75,13 @@ class Dialog(ft.AlertDialog):
 
     def pick_files_result(self, e: ft.FilePickerResultEvent):
         self.selected_files.value = (
-            f"{e.files[0].path}" if e.files else ""
+            json_path := f"{e.files[0].path}" if e.files else ""
         )
         self.selected_files.update()
+
+        if json_path:
+            process_json(json_path)
+            self.close(e)
 
     def did_mount(self):
         self.page.overlay.append(self.pick_files_dialog)
