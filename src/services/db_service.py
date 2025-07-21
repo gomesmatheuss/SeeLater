@@ -21,7 +21,7 @@ def get_all_videos():
     return list(videos_collection.find())
 
 def get_tabs_list():
-    return list(tabs_collection.find(limit=10))
+    return list(tabs_collection.find(limit=30))
 
 def get_video_by_id(video_id):
     return videos_collection.find_one({"id": video_id})

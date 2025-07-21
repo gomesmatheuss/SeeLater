@@ -1,20 +1,83 @@
 import flet as ft
 from models.video import Video
 
-class Card(ft.Container):
+class CardTexts(ft.Column):
     def __init__(self, video: Video):
         super().__init__()
-        self.padding = 2
-        self.width = 280
-        self.content = ft.Column([
-            ft.Image(
-                src=video.thumbnail_path,
-                width=320,
-                height=180,
-                fit=ft.ImageFit.COVER,
-                border_radius=ft.border_radius.all(8),
-                aspect_ratio=1280/720
+        self.spacing = 0
+        self.expand = 1
+        self.controls = [
+            ft.Row(
+                # height = 16,
+                expand = 1,
+                controls = [
+                    ft.Container(
+                        padding = ft.padding.only(top=-6),
+                        expand = 1,
+                        content = ft.Text(
+                            value = video.title,
+                            max_lines = 2,
+                            overflow = ft.TextOverflow.ELLIPSIS,
+                            size = 13,
+                            weight = ft.FontWeight.BOLD
+                        )
+                    )
+                ]
             ),
+            ft.Row(
+                height = 16,
+                expand = 1,
+                controls = [
+                    ft.Container(
+                        padding = ft.padding.only(top=-4),
+                        expand = 1,
+                        content = ft.Text(
+                            value = video.uploader,
+                            max_lines = 1,
+                            overflow = ft.TextOverflow.ELLIPSIS,
+                            size = 12,
+                            color=ft.Colors.GREY_400
+                        )
+                    )
+                ]
+            ),
+            ft.Row(
+                height = 16,
+                expand = 1,
+                controls = [
+                    ft.Container(
+                        padding = ft.padding.only(top=-6),
+                        expand = 1,
+                        content = ft.Text(
+                            f"{video.view_count:,} visualizações",
+                            max_lines = 1,
+                            overflow = ft.TextOverflow.ELLIPSIS,
+                            size = 11,
+                            color=ft.Colors.GREY_500
+                        )
+                    )
+                ]
+            )
+        ]
+
+
+class Card(ft.Column):
+    def __init__(self, video: Video):
+        super().__init__()
+        self.width = 280
+        self.alignment = ft.MainAxisAlignment.START
+        self.controls = [
+            ft.Row([
+                ft.Image(
+                    src=video.thumbnail_path,
+                    width=320,
+                    height=180,
+                    fit=ft.ImageFit.COVER,
+                    border_radius=ft.border_radius.all(8),
+                    aspect_ratio=1280/720,
+                    expand=True
+                )
+            ]),
             ft.Row([
                 ft.Container(
                     width=40,
@@ -23,28 +86,7 @@ class Card(ft.Container):
                     border_radius=20,
                     margin=ft.margin.only(top=2)
                 ),
-                ft.Container(
-                    padding=ft.padding.only(left=10, top=10),
-                    expand=True,
-                    content=ft.Column([
-                        ft.Text(
-                            video.title,
-                            size=14,
-                            weight=ft.FontWeight.BOLD,
-                            max_lines=2,
-                            overflow=ft.TextOverflow.ELLIPSIS
-                        ),
-                        ft.Text(
-                            video.uploader,
-                            size=12,
-                            color=ft.Colors.GREY_400
-                        ),
-                        ft.Text(
-                            f"{video.view_count:,} visualizações",
-                            size=11,
-                            color=ft.Colors.GREY_500
-                        )
-                    ])
-                )
-            ])
-        ])
+                CardTexts(video)
+            ],
+            vertical_alignment=ft.CrossAxisAlignment.START)
+        ]

@@ -18,3 +18,34 @@ def main(page: ft.Page):
     )
 
 ft.app(main)
+
+
+#TODO: Ajeitar os textos do Card
+    #TODO: Trocar fonte
+    #TODO: Ajeitar espaço do titulo
+    #TODO: Criar def para os texto
+    #TODO: Organizar código
+#TODO: Ajeitar a posição da imagem do canal no Card
+#TODO: Adicionar data de upload no Card
+#TODO: Adicionar da badge de verificado (nao importante)
+
+#TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
+#TODO: Colocar um botão para baixar as infos e thumb do video
+#TODO: Baixar as info de forma asyncrona
+#TODO: Adicionar as tags no Card do video
+#TODO: Adicionar barra de pesquisa
+#TODO: Adicionar paginação
+#TODO: Adicionar categorias no menu lateral
+#TODO: Filtrar por categorias, tags
+#TODO: Botão para copiar o link do video
+#TODO: Adicionar tamanho do video no Card
+
+#TODO: Pegar as infos do canal
+#TODO: Colocar a foto do canal no Card
+#TODO: Colocar o link do canal na foto do Card
+
+#TODO: Resolver problemas de links duplicados
+#TODO: Alterar os index do link em Tabs no Mongo
+
+#TODO: Alterar o tamanho da thumb baixada
+#TODO: Remover thumbs de videos assistidos/deletados

@@ -24,9 +24,10 @@ class Grid(ft.Column):
         self.scroll = ft.ScrollMode.HIDDEN
         self.controls = [
             ft.Row(
-                spacing = 10,
-                run_spacing = 20,
+                spacing = 15,
+                run_spacing = 15,
                 wrap = True,
+                vertical_alignment = ft.CrossAxisAlignment.START,
                 controls = self.create_cards()
             )
         ]

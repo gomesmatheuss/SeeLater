@@ -5,7 +5,7 @@ class NavigationColumn(ft.Column):
         super().__init__()
         self.expand = 4
         self.spacing = 0
-        self.scroll = ft.ScrollMode.ALWAYS
+        # self.scroll = ft.ScrollMode.ALWAYS
         self.width = 150
         # self.gallery = gallery
         # self.selected_index = 0
