@@ -24,8 +24,9 @@ ft.app(main)
     #ok - TODO: Trocar fonte
     #ok - TODO: Ajeitar espaço do titulo
 #ok - TODO: Ajeitar a posição da imagem do canal no Card
-#TODO: Adicionar data de upload no Card
+#ok - TODO: Adicionar data de upload no Card
 #TODO: Adicionar da badge de verificado (nao importante)
+#TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
 
 #TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
 #TODO: Colocar um botão para baixar as infos e thumb do video

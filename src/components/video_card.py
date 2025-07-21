@@ -1,4 +1,5 @@
 import flet as ft
+from services.utils import format_timestamp
 from models.video import Video
 
 class CardTexts(ft.Column):
@@ -51,7 +52,7 @@ class CardTexts(ft.Column):
                         padding = ft.padding.only(top=-6),
                         expand = 1,
                         content = ft.Text(
-                            f"{video.view_count:,} visualizações",
+                            f"{video.view_count:,} visualizações - {format_timestamp(video.upload_date)}",
                             max_lines = 1,
                             overflow = ft.TextOverflow.ELLIPSIS,
                             size = 11,
