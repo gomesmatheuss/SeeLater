@@ -1,7 +1,6 @@
 import flet as ft
-from components.grid import Grid
 from components.navbar import Navbar
-from components.fab_button import FABButton
+from components.main_page import MainPage
 
 def main(page: ft.Page):
     page.title = "SeeLater"
@@ -15,17 +14,7 @@ def main(page: ft.Page):
 
     page.add(
         Navbar(),
-        ft.Stack(
-            [
-                ft.Column([Grid()], expand=True),
-                ft.Container(
-                    FABButton(page),
-                    alignment = ft.alignment.bottom_right,
-                    margin=20
-                )
-            ],
-            expand = True
-        )
+        MainPage(page)
     )
 
 ft.app(main)

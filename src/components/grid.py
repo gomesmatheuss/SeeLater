@@ -1,28 +1,42 @@
 import flet as ft
-from services.video_service import get_video_info
-from services.db_service import get_tabs_list, get_all_videos
 from components.video_card import Card
+from services.video_service import get_video_info
+from services.db_service import get_tabs_list
+from services.add_video_dialog import open_video_dialog
 
-class Grid(ft.ResponsiveRow):
+class FABButton(ft.FloatingActionButton):
     def __init__(self):
         super().__init__()
-        self.spacing = 10
-        self.run_spacing = 20
-        self.create_cards()
+        self.icon = ft.Icons.ADD
+        self.bgcolor = ft.Colors.BLUE
+        self.on_click = lambda x: open_video_dialog(self.page)
+        self.tooltip = "Adicionar novo vídeo"
+        
+        
+class Grid(ft.Column):
+    def __init__(self, page: ft.Page):
+        super().__init__()
+        self.page = page
+        self.page.floating_action_button = FABButton()
+
+        self.expand = True
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.scroll = ft.ScrollMode.HIDDEN
+        self.controls = [
+            ft.Row(
+                spacing = 10,
+                run_spacing = 20,
+                wrap = True,
+                controls = self.create_cards()
+            )
+        ]
 
     def create_cards(self):
-        # videos_links = get_all_videos()
-
-        # for url in videos_links:
-        #     full_url = f"https://www.youtube.com/watch?v={url.get('id')}"
-        #     video = get_video_info(full_url)
-        #     if video:
-        #         self.controls.append(Card(video))
-
         tabs = get_tabs_list()
-
+        cards = []
         for tab in tabs:
             if "youtube" in tab["url"]:
                 video = get_video_info(tab["url"])
                 if video:
-                    self.controls.append(Card(video))
+                    cards.append(Card(video))
+        return cards

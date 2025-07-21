@@ -18,6 +18,8 @@ def get_video_info(video_url):
         return Video.from_dict(existing)
 
     try:
+        print("buscando da net")
+        
         result = subprocess.run(
             ["yt-dlp", "-j", "--no-playlist", video_url],
             capture_output=True,
