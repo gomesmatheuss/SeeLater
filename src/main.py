@@ -20,12 +20,10 @@ def main(page: ft.Page):
 ft.app(main)
 
 
-#TODO: Ajeitar os textos do Card
-    #TODO: Trocar fonte
-    #TODO: Ajeitar espaço do titulo
-    #TODO: Criar def para os texto
-    #TODO: Organizar código
-#TODO: Ajeitar a posição da imagem do canal no Card
+#ok - TODO: Ajeitar os textos do Card
+    #ok - TODO: Trocar fonte
+    #ok - TODO: Ajeitar espaço do titulo
+#ok - TODO: Ajeitar a posição da imagem do canal no Card
 #TODO: Adicionar data de upload no Card
 #TODO: Adicionar da badge de verificado (nao importante)
 
@@ -43,9 +41,13 @@ ft.app(main)
 #TODO: Pegar as infos do canal
 #TODO: Colocar a foto do canal no Card
 #TODO: Colocar o link do canal na foto do Card
+#TODO: Colocar um contador com a quantidade total de Tabs
 
 #TODO: Resolver problemas de links duplicados
 #TODO: Alterar os index do link em Tabs no Mongo
 
 #TODO: Alterar o tamanho da thumb baixada
 #TODO: Remover thumbs de videos assistidos/deletados
+
+#TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
+

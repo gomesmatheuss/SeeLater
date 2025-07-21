@@ -8,17 +8,18 @@ class CardTexts(ft.Column):
         self.expand = 1
         self.controls = [
             ft.Row(
-                # height = 16,
                 expand = 1,
                 controls = [
                     ft.Container(
-                        padding = ft.padding.only(top=-6),
+                        padding = ft.padding.only(top=-3, bottom=2),
                         expand = 1,
                         content = ft.Text(
                             value = video.title,
                             max_lines = 2,
                             overflow = ft.TextOverflow.ELLIPSIS,
                             size = 13,
+                            font_family = "Roboto",
+                            style = ft.TextStyle(height=1.2),
                             weight = ft.FontWeight.BOLD
                         )
                     )
@@ -36,6 +37,7 @@ class CardTexts(ft.Column):
                             max_lines = 1,
                             overflow = ft.TextOverflow.ELLIPSIS,
                             size = 12,
+                            font_family = "Roboto",
                             color=ft.Colors.GREY_400
                         )
                     )
@@ -53,6 +55,7 @@ class CardTexts(ft.Column):
                             max_lines = 1,
                             overflow = ft.TextOverflow.ELLIPSIS,
                             size = 11,
+                            font_family = "Roboto",
                             color=ft.Colors.GREY_500
                         )
                     )
