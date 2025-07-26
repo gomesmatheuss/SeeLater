@@ -3,6 +3,7 @@ import json
 import os
 import urllib.request
 import pathlib
+from datetime import datetime
 from services.utils import get_yt_url_code
 from models.video import Video
 from services.db_service import save_video, get_video_by_id
@@ -10,18 +11,21 @@ from services.db_service import save_video, get_video_by_id
 CACHE_DIR = "./storage/data/videos_thumb"
 pathlib.Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
-def get_video_info(video_url):
-    cache_key = get_yt_url_code(video_url)
+def get_video_info(tab: dict):
+    cache_key = get_yt_url_code(tab.get("url", ""))
+
+    if not cache_key:
+        return get_not_loaded_video_info(tab)
 
     existing = get_video_by_id(cache_key)
     if existing:
         return Video.from_dict(existing)
 
     try:
-        print("buscando da net")
+        print("buscando da net -", cache_key, "-", tab.get("title"))
         
         result = subprocess.run(
-            ["yt-dlp", "-j", "--no-playlist", video_url],
+            ["yt-dlp", "-j", "--no-playlist", tab.get("url")],
             capture_output=True,
             text=True,
             check=True
@@ -49,6 +53,20 @@ def get_video_info(video_url):
     except Exception as e:
         print("Erro ao obter info do vídeo:", e)
         return None
+    
+def get_not_loaded_video_info(tab: dict):
+    cache_key = get_yt_url_code(tab.get("url", ""))
+
+    return Video(
+        id=cache_key,
+        title=tab.get("title"),
+        uploader="?",
+        view_count=0,
+        thumbnail_path=os.path.join(CACHE_DIR, "image-not-found.png"),
+        upload_date=datetime.now(),
+        duration="00:00",
+        channel_id=""
+    )
 
 def load_all_videos_from_db():
     from services.db_service import get_all_videos

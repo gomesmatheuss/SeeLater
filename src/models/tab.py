@@ -32,3 +32,18 @@ class Tab:
             "media_type": self.media_type,
             "active": self.active
         }
+    
+    @staticmethod
+    def from_dict(tab):
+        Tab(
+            url = tab.get("url", ""),
+            title = tab.get("title", ""),
+            index = tab.get("index", 0),
+            priority = tab.get("priority", ""),
+            create_at = tab.get("create_at", datetime(1900, 1, 1)),
+            tags = tab.get("tags", []),
+            load_status = tab.get("load_status"),
+            content_id = tab.get("content_id"),
+            media_type = tab.get("media_type"),
+            active = tab.get("active", True)
+        )

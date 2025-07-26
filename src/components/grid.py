@@ -1,6 +1,6 @@
 import flet as ft
 from components.video_card import Card
-from services.video_service import get_video_info
+from services.video_service import get_video_info, get_not_loaded_video_info
 from services.db_service import get_tabs_list
 from services.add_video_dialog import open_video_dialog
 
@@ -38,7 +38,14 @@ class Grid(ft.Column):
         cards = []
         for tab in tabs:
             if "youtube" in tab["url"]:
-                video = get_video_info(tab["url"])
-                if video:
+                # if not tab.get("load_status") or (tab.get("load_status", "") == "Carregado Por Json"):
+                if tab.get("load_status", "") == "Carregado Por Json": #Alterar essa validação quando tiver os status corretos no mongo
+                    video = get_not_loaded_video_info(tab)
                     cards.append(Card(video))
+                else:
+                    video = get_video_info(tab)
+                    if video:
+                        cards.append(Card(video))
+
+
         return cards

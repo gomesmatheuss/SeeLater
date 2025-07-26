@@ -23,6 +23,7 @@ ft.app(main)
 #ok - TODO: Ajeitar os textos do Card
     #ok - TODO: Trocar fonte
     #ok - TODO: Ajeitar espaço do titulo
+    #TODO: Adicionar tooltip no titulo
 #ok - TODO: Ajeitar a posição da imagem do canal no Card
 #ok - TODO: Adicionar data de upload no Card
 #TODO: Adicionar da badge de verificado (nao importante)
@@ -35,12 +36,12 @@ ft.app(main)
     #TODO: Selecionar e desselecionar todos os item de uma vez
     #TODO: Contador de items selecionados
     #TODO: Tela de adicionar tags
-    #TODO: Salvar no MongoDB
+    #ok -TODO: Salvar no MongoDB
 
     #TODO: Mostrar itens duplicados
     #TODO: Atualizar as tags de itens duplicados
 
-#TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
+#ok TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
 #TODO: Colocar um botão para baixar as infos e thumb do video
 #TODO: Baixar as info de forma asyncrona
 #TODO: Adicionar as tags no Card do video
