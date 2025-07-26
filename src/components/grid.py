@@ -5,8 +5,9 @@ from services.db_service import get_tabs_list
 from services.add_video_dialog import open_video_dialog
 
 class FABButton(ft.FloatingActionButton):
-    def __init__(self):
+    def __init__(self, page: ft.Page):
         super().__init__()
+        self.page = page
         self.icon = ft.Icons.ADD
         self.bgcolor = ft.Colors.BLUE
         self.on_click = lambda x: open_video_dialog(self.page)
@@ -17,7 +18,7 @@ class Grid(ft.Column):
     def __init__(self, page: ft.Page):
         super().__init__()
         self.page = page
-        self.page.floating_action_button = FABButton()
+        self.page.floating_action_button = FABButton(self.page)
 
         self.expand = True
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER

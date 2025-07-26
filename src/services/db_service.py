@@ -23,5 +23,9 @@ def get_all_videos():
 def get_tabs_list():
     return list(tabs_collection.find(limit=30))
 
+def get_last_index():
+    last_doc = list(tabs_collection.find({}, {"_id": 0, "index": 1}, limit=1).sort("index", -1))
+    return last_doc[-1].get("index") if last_doc else -1
+
 def get_video_by_id(video_id):
     return videos_collection.find_one({"id": video_id})

@@ -1,6 +1,4 @@
 import flet as ft
-from datetime import datetime
-from models.tab import Tab
 from components.modal_dialog import Dialog
 
 def open_video_dialog(page: ft.Page):

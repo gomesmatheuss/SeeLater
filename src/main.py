@@ -28,6 +28,18 @@ ft.app(main)
 #TODO: Adicionar da badge de verificado (nao importante)
 #TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
 
+#ok - TODO: Alterar os index do link em Tabs no Mongo
+#TODO: Resolver problemas de links duplicados
+
+#ok - TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
+    #TODO: Selecionar e desselecionar todos os item de uma vez
+    #TODO: Contador de items selecionados
+    #TODO: Tela de adicionar tags
+    #TODO: Salvar no MongoDB
+
+    #TODO: Mostrar itens duplicados
+    #TODO: Atualizar as tags de itens duplicados
+
 #TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
 #TODO: Colocar um botão para baixar as infos e thumb do video
 #TODO: Baixar as info de forma asyncrona
@@ -44,11 +56,9 @@ ft.app(main)
 #TODO: Colocar o link do canal na foto do Card
 #TODO: Colocar um contador com a quantidade total de Tabs
 
-#TODO: Resolver problemas de links duplicados
-#TODO: Alterar os index do link em Tabs no Mongo
-
 #TODO: Alterar o tamanho da thumb baixada
 #TODO: Remover thumbs de videos assistidos/deletados
 
-#TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
+#TODO: Criar tabela com tags
+#TODO: Trocar input das tags para um combobox
 

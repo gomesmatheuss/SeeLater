@@ -1,3 +1,24 @@
+# from datetime import datetime
+# from dataclasses import dataclass
+
+# @dataclass
+# class Video:
+#     id: str
+#     url: str
+#     title: str
+#     uploader: str
+#     view_count: int
+#     thumbnail_path: str
+#     upload_date: datetime
+#     duration: str
+#     channel_id: str
+#     last_update: datetime
+#     load_status: str = None
+#     media_type: str = None
+#     active: bool = True
+
+
+
 class Video:
     def __init__(self, id, title, uploader, view_count, 
                  thumbnail_path, upload_date, duration, channel_id):
