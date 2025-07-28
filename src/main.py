@@ -42,8 +42,9 @@ ft.app(main)
     #TODO: Atualizar as tags de itens duplicados
 
 #ok TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
-#TODO: Colocar um botão para baixar as infos e thumb do video
-#TODO: Baixar as info de forma asyncrona
+    #TODO: Colocar um botão para baixar as infos e thumb do video
+    #TODO: Baixar as info de forma asyncrona
+
 #TODO: Adicionar as tags no Card do video
 #TODO: Adicionar barra de pesquisa
 #TODO: Adicionar paginação

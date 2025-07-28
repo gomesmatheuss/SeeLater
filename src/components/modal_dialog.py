@@ -144,7 +144,7 @@ class DialogJson(ft.AlertDialog):
                 ft.Row(
                     controls=[
                         ft.Checkbox(),
-                        ft.Text(f"_ - {tabs_count}")
+                        ft.Text(f"0 / {tabs_count}")
                     ]
                 ),
                 ft.Divider(height=5),
@@ -175,8 +175,10 @@ class DialogJson(ft.AlertDialog):
 
 
 class Dialog(ft.AlertDialog):
-    def __init__(self):
+    def __init__(self, callback=None):
         super().__init__()
+        self.callback = callback
+
         self.url_field = ft.TextField(label="URL do vídeo", autofocus=True)
         self.priority_field = ft.Dropdown(
             label = "Prioridade",
@@ -235,6 +237,7 @@ class Dialog(ft.AlertDialog):
             index = 0,
             priority = self.priority_field.value,
             create_at = datetime.now(),
+            last_update = datetime.now(),
             tags = [tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
             active = True
         )
@@ -245,6 +248,11 @@ class Dialog(ft.AlertDialog):
         self.pick_files_dialog.pick_files(allowed_extensions=["json", "txt"], allow_multiple=False)
 
     def pick_files_result(self, e: ft.FilePickerResultEvent):
+        def on_close(e):
+            dlg.open = False
+            self.page.update()
+            self.callback(True)
+
         self.selected_files.value = (
             json_path := f"{e.files[0].path}" if e.files else ""
         )
@@ -255,6 +263,7 @@ class Dialog(ft.AlertDialog):
             self.close(e)
 
             dlg = DialogJson(tabs, json_count, tabs_count)
+            dlg.on_dismiss = on_close
             self.page.overlay.append(dlg)
             dlg.open = True
             self.page.update()

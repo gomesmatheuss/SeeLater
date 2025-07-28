@@ -1,5 +1,8 @@
 import json
 from models.tab import Tab
+from models.enums.priority import Priority
+from models.enums.load_status import LoadStatus
+from models.enums.media_type import MediaType
 from services.db_service import save_tabs, get_last_index
 from datetime import datetime
 
@@ -23,10 +26,11 @@ def extract_from_json(path):
                 url = tab["url"],
                 title = tab["title"],
                 index = index,
-                priority = "Baixa",
+                priority = Priority.LOW,
                 create_at = datetime.now(),
-                load_status = "Carregado Por Json",
-                media_type = "Video"
+                last_update = datetime.now(),
+                load_status = LoadStatus.JSON_IMPORTED,
+                media_type = MediaType.YOUTUBE_VIDEO
             )
         )
 
