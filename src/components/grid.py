@@ -41,13 +41,16 @@ class Grid(ft.Column):
             )
         ]
 
-    def create_cards(self):
+    def create_cards(self, search_query=""):
         tabs = get_tabs_list()
         cards = []
         for tab in tabs:
+            if search_query.lower() not in tab["title"].lower() and \
+               search_query.lower() not in tab["url"].lower():
+                continue
+
             if "youtube" in tab["url"]:
-                # if not tab.get("load_status") or (tab.get("load_status", "") == "Carregado Por Json"):
-                if tab.get("load_status") and (LoadStatus(tab.get("load_status")) == LoadStatus.JSON_IMPORTED): #Alterar essa validação quando tiver os status corretos no mongo
+                if tab.get("load_status") and (LoadStatus(tab.get("load_status")) == LoadStatus.JSON_IMPORTED):
                     video = get_not_loaded_video_info(tab)
                     cards.append(Card(video))
                 else:
@@ -56,8 +59,7 @@ class Grid(ft.Column):
                         cards.append(Card(video))
         return cards
 
-    def refresh(self):
-        new_cards = self.create_cards()
+    def refresh(self, query):
+        new_cards = self.create_cards(query)
         self.controls[0].controls = new_cards
         self.update()
-

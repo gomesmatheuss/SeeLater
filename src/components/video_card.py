@@ -21,7 +21,8 @@ class CardTexts(ft.Column):
                             size = 13,
                             font_family = "Roboto",
                             style = ft.TextStyle(height=1.2),
-                            weight = ft.FontWeight.BOLD
+                            weight = ft.FontWeight.BOLD,
+                            tooltip = ft.Tooltip(video.title, wait_duration=ft.Duration(milliseconds=600))
                         )
                     )
                 ]
@@ -39,7 +40,8 @@ class CardTexts(ft.Column):
                             overflow = ft.TextOverflow.ELLIPSIS,
                             size = 12,
                             font_family = "Roboto",
-                            color=ft.Colors.GREY_400
+                            color=ft.Colors.GREY_400,
+                            tooltip = ft.Tooltip(video.uploader, wait_duration=ft.Duration(milliseconds=600))
                         )
                     )
                 ]
@@ -90,7 +92,27 @@ class Card(ft.Column):
                     border_radius=20,
                     margin=ft.margin.only(top=2)
                 ),
-                CardTexts(video)
+                CardTexts(video),
+                ft.Column(
+                    spacing=0,
+                    controls = [
+                        ft.PopupMenuButton(
+                            padding=1,
+                            menu_padding=1,
+                            width=25,
+                            items=[
+                                ft.PopupMenuItem(text="Item 1"),
+                                ft.PopupMenuItem(),
+                                ft.PopupMenuItem(
+                                    text="Checked item",
+                                    checked=False
+                                )
+                            ]
+                        ),
+                        # ft.Icon(ft.Icons.DOWNLOADING_OUTLINED),
+                        ft.Icon(ft.Icons.REFRESH)
+                    ]
+                )
             ],
             vertical_alignment=ft.CrossAxisAlignment.START)
         ]

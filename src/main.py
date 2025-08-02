@@ -41,13 +41,17 @@ ft.app(main)
     #TODO: Mostrar itens duplicados
     #TODO: Atualizar as tags de itens duplicados
 
-#ok TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
+#ok - TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
     #TODO: Colocar um botão para baixar as infos e thumb do video
     #TODO: Baixar as info de forma asyncrona
 
-#TODO: Adicionar as tags no Card do video
+
 #TODO: Adicionar barra de pesquisa
 #TODO: Adicionar paginação
+#TODO: Editar os Cards
+
+
+#TODO: Adicionar as tags no Card do video
 #TODO: Adicionar categorias no menu lateral
 #TODO: Filtrar por categorias, tags
 #TODO: Botão para copiar o link do video
@@ -64,3 +68,4 @@ ft.app(main)
 #TODO: Criar tabela com tags
 #TODO: Trocar input das tags para um combobox
 
+#TODO: Adicionar Podcasts via RSS
