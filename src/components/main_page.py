@@ -23,4 +23,4 @@ class MainPage(ft.Row):
         ]
 
     def on_search(self, query):
-        self.grid.refresh(query)
+        self.grid.update_cards(query)
