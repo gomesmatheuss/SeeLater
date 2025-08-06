@@ -14,9 +14,9 @@ class Tab:
     create_at: datetime
     last_update: datetime = None
     tags: List[str] = None
-    load_status: LoadStatus = None
+    load_status: LoadStatus = LoadStatus.INCLUDED_BY_URL
     content_id: str = None
-    media_type: MediaType = None
+    media_type: MediaType = MediaType.YOUTUBE_VIDEO #alterar depois
     active: bool = True
 
     def __post_init__(self):
@@ -28,13 +28,13 @@ class Tab:
             "url": self.url,
             "title": self.title,
             "index": self.index,
-            "priority": self.priority.value,
+            "priority": Priority(self.priority).value,
             "create_at": self.create_at,
             "last_update": self.last_update,
             "tags": self.tags,
-            "load_status": self.load_status.value,
+            "load_status": LoadStatus(self.load_status).value,
             "content_id": self.content_id,
-            "media_type": self.media_type.value,
+            "media_type": MediaType(self.media_type).value,
             "active": self.active
         }
     

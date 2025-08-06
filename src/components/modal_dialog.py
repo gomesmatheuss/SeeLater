@@ -1,8 +1,9 @@
 import flet as ft
 from datetime import datetime
 from models.tab import Tab
+from models.enums.priority import Priority
 from services.process_json import extract_from_json
-from services.db_service import save_tabs
+from services.db_service import save_tabs, save_tab
 
 class CustomText(ft.Text):
     def __init__(self, text, color=None, size=16, text_align=ft.TextAlign.LEFT, tooltip=None, selectable=None):
@@ -233,15 +234,15 @@ class Dialog(ft.AlertDialog):
     def save(self, e):
         new_tab = Tab(
             url = self.url_field.value,
-            title = "",
+            title = self.url_field.value,
             index = 0,
-            priority = self.priority_field.value,
+            priority = Priority.MEDIUM if self.priority_field.value == "Média" else Priority.HIGH if self.priority_field.value == "Alta" else Priority.LOW,
             create_at = datetime.now(),
             last_update = datetime.now(),
             tags = [tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
             active = True
         )
-        print("Novo vídeo adicionado:", new_tab.__dict__)
+        save_tab(new_tab)
         self.close(e)
 
     def pick_files(self, e):

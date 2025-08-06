@@ -60,20 +60,21 @@ class Grid(ft.Column):
 
     def get_filtered_tabs(self, search_term: str):
         tabs = get_tabs_list()
-        return [tab for tab in tabs if search_term.lower() in tab["title"].lower()]
+        return [tab for tab in tabs if search_term.lower() in tab["title"].lower() or
+                                       search_term.lower() in tab["url"].lower() or
+                                       search_term in tab["tags"]]
 
     def get_all_tabs(self, search_term):
         tabs = self.get_filtered_tabs(search_term)
         cards = []
         for tab in tabs:
             if "youtube" in tab["url"]:
-                if tab.get("load_status") and (LoadStatus(tab.get("load_status")) == LoadStatus.JSON_IMPORTED):
-                    video = get_not_loaded_video_info(tab)
-                    cards.append(Card(video))
-                else:
-                    video = get_video_info(tab)
-                    if video:
-                        cards.append(Card(video))
+                video_info = None
+                if status := tab.get("load_status") and status == LoadStatus.READY_FOR_LOAD:
+                    video_info = get_video_info(tab)
+
+                video = video_info if video_info else get_not_loaded_video_info(tab)
+                cards.append(Card(video))
         return cards
 
     def update_cards(self, search_term="", change_page=False):

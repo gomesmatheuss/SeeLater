@@ -46,8 +46,11 @@ ft.app(main)
     #TODO: Baixar as info de forma asyncrona
 
 
-#TODO: Adicionar barra de pesquisa
-#TODO: Adicionar paginação
+#ok - TODO: Adicionar barra de pesquisa
+    #TODO: Filtrar por tags
+#ok - TODO: Adicionar paginação
+    #TODO: Trocar a barra de navegação por algo mais organizado, tipo 1 ... 3 4 5 6 7 ... 10 20 30 33
+    #TODO: Mostar a quantidade total de itens
 #TODO: Editar os Cards
 
 
@@ -67,5 +70,6 @@ ft.app(main)
 
 #TODO: Criar tabela com tags
 #TODO: Trocar input das tags para um combobox
+#TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
 #TODO: Adicionar Podcasts via RSS

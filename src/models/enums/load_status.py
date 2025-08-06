@@ -6,3 +6,6 @@ class LoadStatus(Enum):
     LOAD_FAILED = 3
     WATCHED = 4
     DELETED = 5
+    INCLUDED_BY_URL = 6
+    READY_FOR_LOAD = 7
+    
