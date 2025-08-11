@@ -1,11 +1,11 @@
 from enum import Enum
 
 class LoadStatus(Enum):
-    JSON_IMPORTED = 1
-    LOAD_SUCCESS = 2
-    LOAD_FAILED = 3
-    WATCHED = 4
-    DELETED = 5
-    INCLUDED_BY_URL = 6
-    READY_FOR_LOAD = 7
+    JSON_IMPORTED = "json_imported"
+    LOAD_SUCCESS = "load_success"
+    LOAD_FAILED = "load_failed"
+    WATCHED = "watched"
+    DELETED = "deleted"
+    INCLUDED_BY_URL = "inclued_by_url"
+    READY_FOR_LOAD = "ready_for_load"
     

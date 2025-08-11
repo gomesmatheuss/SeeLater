@@ -3,7 +3,8 @@ from datetime import datetime
 from models.tab import Tab
 from models.enums.priority import Priority
 from services.process_json import extract_from_json
-from services.db_service import save_tabs, save_tab
+from services.db_service import save_tabs
+from services.video_service import save_from_url
 
 class CustomText(ft.Text):
     def __init__(self, text, color=None, size=16, text_align=ft.TextAlign.LEFT, tooltip=None, selectable=None):
@@ -242,7 +243,7 @@ class Dialog(ft.AlertDialog):
             tags = [tag.strip() for tag in self.tags_field.value.split(",")] if self.tags_field.value else [],
             active = True
         )
-        save_tab(new_tab)
+        save_from_url(new_tab)
         self.close(e)
 
     def pick_files(self, e):

@@ -16,7 +16,11 @@ def save_video(video_dict):
 
 def save_tab(tab):
     tab.index = get_last_index() + 10
-    tabs_collection.insert_one(tab.to_dict())
+    tabs_collection.update_one(
+        {"url": tab.url},
+        {"$set": tab.to_dict()},
+        upsert=True
+    )
 
 def save_tabs(tabs):
     tabs_collection.insert_many(tabs)

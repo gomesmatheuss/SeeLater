@@ -70,7 +70,8 @@ class Grid(ft.Column):
         for tab in tabs:
             if "youtube" in tab["url"]:
                 video_info = None
-                if status := tab.get("load_status") and status == LoadStatus.READY_FOR_LOAD:
+                tab["load_status"] = LoadStatus.LOAD_FAILED if tab.get("load_status") is not LoadStatus else tab["load_status"]
+                if (status := tab.get("load_status")) and LoadStatus(status) in (LoadStatus.READY_FOR_LOAD, LoadStatus.LOAD_SUCCESS):
                     video_info = get_video_info(tab)
 
                 video = video_info if video_info else get_not_loaded_video_info(tab)
