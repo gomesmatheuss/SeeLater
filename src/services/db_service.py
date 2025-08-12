@@ -29,7 +29,7 @@ def get_all_videos():
     return {video["id"]: video for video in videos_collection.find()}
 
 def get_tabs_list():
-    return list(tabs_collection.find({"active": True}).sort("index", 1))
+    return list(tabs_collection.find({"active": True}).sort("index", -1))
 
 def get_last_index():
     last_doc = list(tabs_collection.find({}, {"_id": 0, "index": 1}, limit=1).sort("index", -1))

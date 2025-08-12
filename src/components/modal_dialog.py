@@ -179,6 +179,7 @@ class DialogJson(ft.AlertDialog):
 class Dialog(ft.AlertDialog):
     def __init__(self, callback=None):
         super().__init__()
+        self.json_dialog_is_opened = False
         self.callback = callback
 
         self.url_field = ft.TextField(label="URL do vídeo", autofocus=True)
@@ -229,6 +230,9 @@ class Dialog(ft.AlertDialog):
         self.actions_alignment = ft.MainAxisAlignment.END
 
     def close(self, e):
+        if not self.json_dialog_is_opened:
+            self.callback(True)
+            
         self.open = False
         self.page.update()
 
@@ -264,6 +268,7 @@ class Dialog(ft.AlertDialog):
             tabs, json_count, tabs_count = extract_from_json(json_path)
             self.close(e)
 
+            self.json_dialog_is_opened = True
             dlg = DialogJson(tabs, json_count, tabs_count)
             dlg.on_dismiss = on_close
             self.page.overlay.append(dlg)

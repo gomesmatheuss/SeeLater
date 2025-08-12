@@ -3,7 +3,6 @@ from components.video_card import Card
 from services.video_service import load_card_info
 from services.db_service import get_tabs_list, get_all_videos
 from services.add_video_dialog import open_video_dialog
-from models.enums.load_status import LoadStatus
 
 class FABButton(ft.FloatingActionButton):
     def __init__(self, page: ft.Page, grid):
@@ -62,7 +61,6 @@ class Grid(ft.Column):
 
     def get_filtered_tabs(self, search_term: str, hard_refresh):
         if hard_refresh or not self.ALL_TABS:
-            print("pegando tabs do banco")
             self.ALL_TABS = get_tabs_list()
             self.ALL_VIDEOS = get_all_videos()
         return [tab for tab in self.ALL_TABS if search_term.lower() in tab["title"].lower() or
