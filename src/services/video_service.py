@@ -90,7 +90,14 @@ def save_from_url(tab: Tab):
     save_video(video.to_dict())
     save_tab(tab)
 
-def load_all_videos_from_db():
-    from services.db_service import get_all_videos
-    docs = get_all_videos()
-    return [Video.from_dict(doc) for doc in docs]
+def load_card_info(tab: dict, VIDEOS):
+    if "youtube" in tab["url"]:
+        #usando isso enquanto não corrijo o banco
+        tab["load_status"] = LoadStatus.LOAD_FAILED if type(tab.get("load_status")) == int else tab["load_status"]
+
+        if LoadStatus(tab.get("load_status", LoadStatus.LOAD_FAILED)) == LoadStatus.LOAD_SUCCESS:
+            yt_id = get_yt_url_code(tab.get("url"))
+            return Video.from_dict(VIDEOS.get(yt_id))
+
+        return get_not_loaded_video_info(tab)
+

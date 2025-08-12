@@ -15,7 +15,7 @@ def save_video(video_dict):
     )
 
 def save_tab(tab):
-    tab.index = get_last_index() + 10
+    tab.index = get_last_index() + 10 if tab.index == 0 else tab.index
     tabs_collection.update_one(
         {"url": tab.url},
         {"$set": tab.to_dict()},
@@ -26,7 +26,7 @@ def save_tabs(tabs):
     tabs_collection.insert_many(tabs)
 
 def get_all_videos():
-    return list(videos_collection.find())
+    return {video["id"]: video for video in videos_collection.find()}
 
 def get_tabs_list():
     return list(tabs_collection.find({"active": True}).sort("index", 1))

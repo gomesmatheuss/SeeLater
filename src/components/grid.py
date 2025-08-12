@@ -1,7 +1,7 @@
 import flet as ft
 from components.video_card import Card
-from services.video_service import get_video_info, get_not_loaded_video_info
-from services.db_service import get_tabs_list
+from services.video_service import load_card_info
+from services.db_service import get_tabs_list, get_all_videos
 from services.add_video_dialog import open_video_dialog
 from models.enums.load_status import LoadStatus
 
@@ -17,7 +17,7 @@ class FABButton(ft.FloatingActionButton):
 
     def on_click_handler(self, e):
         def after_dialog(result):
-            self.grid.update_cards()
+            self.grid.update_cards(hard_refresh=True)
 
         open_video_dialog(self.page, callback=after_dialog)
         
@@ -29,6 +29,8 @@ class Grid(ft.Column):
         self.current_page = 0
         self.items_per_page = 54
         self.search_term = ''
+        self.ALL_TABS = []
+        self.ALL_VIDEOS = {}
 
         self.expand = True
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -58,31 +60,31 @@ class Grid(ft.Column):
 
         self.update_cards()
 
-    def get_filtered_tabs(self, search_term: str):
-        tabs = get_tabs_list()
-        return [tab for tab in tabs if search_term.lower() in tab["title"].lower() or
+    def get_filtered_tabs(self, search_term: str, hard_refresh):
+        if hard_refresh or not self.ALL_TABS:
+            print("pegando tabs do banco")
+            self.ALL_TABS = get_tabs_list()
+            self.ALL_VIDEOS = get_all_videos()
+        return [tab for tab in self.ALL_TABS if search_term.lower() in tab["title"].lower() or
                                        search_term.lower() in tab["url"].lower() or
                                        search_term in tab["tags"]]
 
-    def get_all_tabs(self, search_term):
-        tabs = self.get_filtered_tabs(search_term)
+    def get_all_tabs(self, search_term, hard_refresh):
+        tabs = self.get_filtered_tabs(search_term, hard_refresh)
         cards = []
         for tab in tabs:
-            if "youtube" in tab["url"]:
-                video_info = None
-                tab["load_status"] = LoadStatus.LOAD_FAILED if tab.get("load_status") is not LoadStatus else tab["load_status"]
-                if (status := tab.get("load_status")) and LoadStatus(status) in (LoadStatus.READY_FOR_LOAD, LoadStatus.LOAD_SUCCESS):
-                    video_info = get_video_info(tab)
-
-                video = video_info if video_info else get_not_loaded_video_info(tab)
+            video = load_card_info(tab, self.ALL_VIDEOS)
+            if video:
                 cards.append(Card(video))
+
         return cards
 
-    def update_cards(self, search_term="", change_page=False):
+    def update_cards(self, search_term="", change_page=False, hard_refresh=False):
         if not change_page:
             self.search_term = search_term
+            self.current_page = 0
         
-        all_cards = self.get_all_tabs(self.search_term)
+        all_cards = self.get_all_tabs(self.search_term, hard_refresh)
 
         start = self.current_page * self.items_per_page
         end = start + self.items_per_page
