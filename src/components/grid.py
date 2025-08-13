@@ -19,8 +19,8 @@ class FABButton(ft.FloatingActionButton):
             self.grid.update_cards(hard_refresh=True)
 
         open_video_dialog(self.page, callback=after_dialog)
-        
-        
+
+
 class Grid(ft.Column):
     def __init__(self, page: ft.Page):
         super().__init__()

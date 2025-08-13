@@ -3,6 +3,7 @@ import json
 import os
 import urllib.request
 import pathlib
+import re
 from datetime import datetime
 from services.utils import get_yt_url_code
 from models.video import Video
@@ -33,7 +34,7 @@ def get_video_info(tab: dict):
             check=True
         )
         data = json.loads(result.stdout)
-        thumb_url = data.get("thumbnail")
+        thumb_url = re.sub(r"(hqdefault|maxresdefault|sddefault)", "mqdefault", data.get("thumbnail"))
         thumb_path = os.path.join(CACHE_DIR, f"{cache_key}.jpg")
         urllib.request.urlretrieve(thumb_url, thumb_path)
 

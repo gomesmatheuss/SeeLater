@@ -5,6 +5,8 @@ from models.video import Video
 class CardTexts(ft.Column):
     def __init__(self, video: Video):
         super().__init__()
+        self.video = video
+        
         self.spacing = 0
         self.expand = 1
         self.controls = [
@@ -14,6 +16,7 @@ class CardTexts(ft.Column):
                     ft.Container(
                         padding = ft.padding.only(top=-3, bottom=2),
                         expand = 1,
+                        on_click=self.copy_url_to_clipboard,
                         content = ft.Text(
                             value = video.title,
                             max_lines = 2,
@@ -66,6 +69,15 @@ class CardTexts(ft.Column):
             )
         ]
 
+    def copy_url_to_clipboard(self, e):
+        e.control.page.set_clipboard(self.video.url)
+        e.control.page.open(
+            ft.SnackBar(
+                ft.Text(f"Copied to clipboard: {self.video.url}"),
+                open=True,
+            )
+        )
+
 
 class Card(ft.Column):
     def __init__(self, video: Video):
@@ -109,7 +121,6 @@ class Card(ft.Column):
                                 )
                             ]
                         ),
-                        # ft.Icon(ft.Icons.DOWNLOADING_OUTLINED),
                         ft.Icon(ft.Icons.REFRESH)
                     ]
                 )

@@ -30,7 +30,7 @@ ft.app(main)
 #TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
 
 #ok - TODO: Alterar os index do link em Tabs no Mongo
-#TODO: Resolver problemas de links duplicados
+#ok - TODO: Resolver problemas de links duplicados
 
 #ok - TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
     #TODO: Selecionar e desselecionar todos os item de uma vez
@@ -65,11 +65,11 @@ ft.app(main)
 #TODO: Colocar o link do canal na foto do Card
 #TODO: Colocar um contador com a quantidade total de Tabs
 
-#TODO: Alterar o tamanho da thumb baixada
+#ok - TODO: Alterar o tamanho da thumb baixada
 #TODO: Remover thumbs de videos assistidos/deletados
 
 #TODO: Criar tabela com tags
 #TODO: Trocar input das tags para um combobox
-#TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
+#ok - TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
 #TODO: Adicionar Podcasts via RSS
