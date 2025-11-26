@@ -36,7 +36,7 @@ ft.app(main)
     #TODO: Selecionar e desselecionar todos os item de uma vez
     #TODO: Contador de items selecionados
     #TODO: Tela de adicionar tags
-    #ok -TODO: Salvar no MongoDB
+    #ok - TODO: Salvar no MongoDB
 
     #TODO: Mostrar itens duplicados
     #TODO: Atualizar as tags de itens duplicados

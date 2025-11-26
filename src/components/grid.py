@@ -1,8 +1,8 @@
 import flet as ft
 from components.video_card import Card
+from components.add_links_alertdialog import AddLinks
 from services.video_service import load_card_info
 from services.db_service import get_tabs_list, get_all_videos
-from services.add_video_dialog import open_video_dialog
 
 class FABButton(ft.FloatingActionButton):
     def __init__(self, page: ft.Page, grid):
@@ -18,7 +18,13 @@ class FABButton(ft.FloatingActionButton):
         def after_dialog(result):
             self.grid.update_cards(hard_refresh=True)
 
-        open_video_dialog(self.page, callback=after_dialog)
+        self.open_video_dialog(callback=after_dialog)
+
+    def open_video_dialog(self, callback=None):
+        dlg = AddLinks(callback)
+        self.page.overlay.append(dlg)
+        dlg.open = True
+        self.page.update()
 
 
 class Grid(ft.Column):
@@ -73,7 +79,7 @@ class Grid(ft.Column):
         for tab in tabs:
             video = load_card_info(tab, self.ALL_VIDEOS)
             if video:
-                cards.append(Card(video))
+                cards.append(Card(video, self.page))
 
         return cards
 

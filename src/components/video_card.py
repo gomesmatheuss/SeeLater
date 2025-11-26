@@ -1,6 +1,7 @@
 import flet as ft
 from services.utils import format_timestamp
 from models.video import Video
+from components.edit_video_alertdialog import EditVideo
 
 class CardTexts(ft.Column):
     def __init__(self, video: Video):
@@ -80,21 +81,29 @@ class CardTexts(ft.Column):
 
 
 class Card(ft.Column):
-    def __init__(self, video: Video):
+    def __init__(self, video: Video, page: ft.Page):
         super().__init__()
+        self.video = video
+        self.page = page
+
         self.width = 280
         self.alignment = ft.MainAxisAlignment.START
         self.controls = [
             ft.Row([
-                ft.Image(
-                    src=video.thumbnail_path,
-                    width=320,
-                    height=180,
-                    fit=ft.ImageFit.COVER,
-                    border_radius=ft.border_radius.all(8),
-                    aspect_ratio=1280/720,
-                    expand=True
-                )
+                ft.Container(
+                    expand=1,
+                    content = ft.Image(
+                        src=video.thumbnail_path,
+                        width=320,
+                        height=180,
+                        fit=ft.ImageFit.COVER,
+                        border_radius=ft.border_radius.all(8),
+                        aspect_ratio=1280/720,
+                        expand=True
+                    ),
+                    on_click=self.open_edit_video_dialog
+                    # on_click = lambda x: x(page)
+                )                
             ]),
             ft.Row([
                 ft.Container(
@@ -127,3 +136,11 @@ class Card(ft.Column):
             ],
             vertical_alignment=ft.CrossAxisAlignment.START)
         ]
+
+    # def open_edit_video_dialog(self, page: ft.Page, callback=None):
+    def open_edit_video_dialog(self, e):
+        dlg = EditVideo(self.video)
+        page = self.page
+        page.overlay.append(dlg)
+        dlg.open = True
+        page.update()

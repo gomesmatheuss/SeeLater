@@ -132,7 +132,7 @@ class ItemsExpansion(ft.ExpansionTile):
         ]
     
 
-class DialogJson(ft.AlertDialog):
+class AddLinksByJson(ft.AlertDialog):
     def __init__(self, tabs, itens_count, tabs_count):
         super().__init__()
         self.tabs = tabs
@@ -176,7 +176,7 @@ class DialogJson(ft.AlertDialog):
         self.page.update()
 
 
-class Dialog(ft.AlertDialog):
+class AddLinks(ft.AlertDialog):
     def __init__(self, callback=None):
         super().__init__()
         self.json_dialog_is_opened = False
@@ -269,7 +269,7 @@ class Dialog(ft.AlertDialog):
             self.close(e)
 
             self.json_dialog_is_opened = True
-            dlg = DialogJson(tabs, json_count, tabs_count)
+            dlg = AddLinksByJson(tabs, json_count, tabs_count)
             dlg.on_dismiss = on_close
             self.page.overlay.append(dlg)
             dlg.open = True
