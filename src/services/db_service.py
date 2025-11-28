@@ -1,5 +1,6 @@
-from pymongo import MongoClient
 import os
+from pymongo import MongoClient
+from datetime import datetime
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI)
@@ -37,3 +38,21 @@ def get_last_index():
 
 def get_video_by_id(video_id):
     return videos_collection.find_one({"id": video_id})
+
+def set_watched(video_id):
+    tabs_collection.update_one(
+        {"url": f"https://www.youtube.com/watch?v={video_id}"},
+        {"$set": {
+            "active": False,
+            "load_status": "watched",
+            "last_update": datetime.now()
+        }}
+    )
+    videos_collection.update_one(
+        {"id": video_id},
+        {"$set": {
+            "active": False,
+            "load_status": "watched",
+            "last_update": datetime.now()
+        }}
+    )

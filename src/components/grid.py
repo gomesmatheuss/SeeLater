@@ -79,7 +79,7 @@ class Grid(ft.Column):
         for tab in tabs:
             video = load_card_info(tab, self.ALL_VIDEOS)
             if video:
-                cards.append(Card(video, self.page))
+                cards.append(Card(video, self.page, self))
 
         return cards
 

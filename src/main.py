@@ -53,6 +53,8 @@ ft.app(main)
     #TODO: Mostar a quantidade total de itens
 #TODO: Editar os Cards
 
+#TODO: Ao dar update no grid, verificar itens para apagar(thumb) e baixar
+
 
 #TODO: Adicionar as tags no Card do video
 #TODO: Adicionar categorias no menu lateral

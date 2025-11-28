@@ -1,5 +1,6 @@
 import flet as ft
 from services.utils import format_timestamp
+from services.db_service import set_watched
 from models.video import Video
 from components.edit_video_alertdialog import EditVideo
 
@@ -81,10 +82,11 @@ class CardTexts(ft.Column):
 
 
 class Card(ft.Column):
-    def __init__(self, video: Video, page: ft.Page):
+    def __init__(self, video: Video, page: ft.Page, grid):
         super().__init__()
         self.video = video
         self.page = page
+        self.grid = grid
 
         self.width = 280
         self.alignment = ft.MainAxisAlignment.START
@@ -102,7 +104,6 @@ class Card(ft.Column):
                         expand=True
                     ),
                     on_click=self.open_edit_video_dialog
-                    # on_click = lambda x: x(page)
                 )                
             ]),
             ft.Row([
@@ -122,25 +123,38 @@ class Card(ft.Column):
                             menu_padding=1,
                             width=25,
                             items=[
-                                ft.PopupMenuItem(text="Item 1"),
-                                ft.PopupMenuItem(),
-                                ft.PopupMenuItem(
-                                    text="Checked item",
-                                    checked=False
-                                )
+                                ft.PopupMenuItem(text="Marcar Como Visto", height=30, on_click=self.watched_click),
+                                ft.PopupMenuItem(text="Mover Para o Topo", height=30),
+                                ft.PopupMenuItem(text="Mover Para Último", height=30),
+                                ft.PopupMenuItem(text="Carregar Informações", height=30),
+                                ft.PopupMenuItem(text="Ocultar", height=30),
+                                ft.PopupMenuItem(text="Excluir", height=30)
                             ]
                         ),
-                        ft.Icon(ft.Icons.REFRESH)
+                        # if self.video.
+                        # ft.Icon(ft.Icons.REFRESH)
                     ]
                 )
             ],
             vertical_alignment=ft.CrossAxisAlignment.START)
         ]
 
-    # def open_edit_video_dialog(self, page: ft.Page, callback=None):
     def open_edit_video_dialog(self, e):
         dlg = EditVideo(self.video)
         page = self.page
         page.overlay.append(dlg)
         dlg.open = True
         page.update()
+
+    def watched_click(self, e):
+        set_watched(self.video.id)
+
+        self.grid.update_cards(hard_refresh=True)
+
+        e.control.page.open(
+            ft.SnackBar(
+                ft.Text(f"Marked as viewed: {self.video.title}"),
+                open=True,
+                duration=2
+            )
+        )
