@@ -1,5 +1,5 @@
 from services.video_service import load_card_info
-from services.db_service import get_tabs_list, get_all_videos
+from services.db_service import get_tabs_list, get_all_videos, set_watched
 
 
 class GridService:
@@ -77,12 +77,12 @@ class GridService:
         return videos
 
     def get_page_videos(
-        self,
-        current_page,
-        items_per_page,
-        search_term="",
-        hard_refresh=False
-    ):
+            self,
+            current_page,
+            items_per_page,
+            search_term="",
+            hard_refresh=False
+        ):
         """
         Retorna somente os Videos válidos pertencentes
         à página atual.
@@ -108,3 +108,15 @@ class GridService:
         videos = self.get_valid_videos(search_term)
 
         return len(videos)
+
+    def mark_as_watched(self, video):
+        """
+        Marca o vídeo como visto no banco de dados.
+        """
+
+        set_watched(video.id)
+
+        # O vídeo marcado como visto pode deixar de aparecer
+        # nos resultados atuais.
+        self.video_cache.clear()
+

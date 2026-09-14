@@ -81,7 +81,7 @@ class Grid(ft.Column):
             Card(
                 video,
                 self.page,
-                self
+                self.on_card_changed
             )
             for video in videos
         ]
@@ -98,3 +98,14 @@ class Grid(ft.Column):
         )
 
         self.page.update()
+
+    def on_card_changed(self, video):
+        """
+        Chamado quando um Card altera alguma informação.
+        """
+
+        self.service.mark_as_watched(video)
+
+        self.update_cards(
+            hard_refresh=True
+        )
