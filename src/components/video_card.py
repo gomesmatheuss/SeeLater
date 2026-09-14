@@ -1,5 +1,5 @@
 import flet as ft
-from services.utils import format_timestamp
+from services.utils import format_timestamp, format_view_count
 from models.video import Video
 from components.edit_video_alertdialog import EditVideo
 
@@ -77,7 +77,7 @@ class CardTexts(ft.Column):
                         padding=ft.padding.only(top=-6),
                         expand=1,
                         content=ft.Text(
-                            f"{video.view_count:,} visualizações - "
+                            f"{format_view_count(video.view_count)} visualizações - "
                             f"{format_timestamp(video.upload_date)}",
                             max_lines=1,
                             overflow=ft.TextOverflow.ELLIPSIS,
@@ -146,9 +146,23 @@ class Card(ft.Column):
                     ft.Container(
                         width=40,
                         height=40,
-                        bgcolor=ft.Colors.GREY_700,
                         border_radius=20,
-                        margin=ft.margin.only(top=2)
+                        margin=ft.margin.only(top=2),
+                        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                        content=(
+                            ft.Image(
+                                src=video.channel_thumbnail_path,
+                                width=40,
+                                height=40,
+                                fit=ft.ImageFit.COVER
+                            )
+                            if video.channel_thumbnail_path
+                            else ft.Container(
+                                width=40,
+                                height=40,
+                                bgcolor=ft.Colors.GREY_700
+                            )
+                        )
                     ),
 
                     CardTexts(video),

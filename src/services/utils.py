@@ -39,3 +39,54 @@ def format_timestamp(timestamp: Union[float, datetime.datetime]) -> str:
         return f"há {meses} {'meses' if meses > 1 else 'mês'}"
     else:
         return f"há {anos} ano{'s' if anos > 1 else ''}"
+
+def format_view_count(view_count: int) -> str:
+    """
+    Formata a quantidade de visualizações seguindo um formato
+    semelhante ao utilizado pelo YouTube.
+
+    Regras:
+
+    0 - 99.999
+        Número completo com separador de milhar.
+
+    100.000 - 999.999
+        Número inteiro + "mil".
+
+    1.000.000 - 999.999.999
+        Milhões com até uma casa decimal + "M".
+
+    1.000.000.000+
+        Bilhões com até uma casa decimal + "B".
+    """
+
+    if view_count is None:
+        return "0"
+
+    view_count = int(view_count)
+
+    # 0 - 99.999
+    if view_count < 100_000:
+        return f"{view_count:,}".replace(",", ".")
+
+    # 100.000 - 999.999
+    if view_count < 1_000_000:
+        thousands = view_count // 1_000
+        return f"{thousands}mil"
+
+    # 1.000.000 - 999.999.999
+    if view_count < 1_000_000_000:
+        millions = view_count / 1_000_000
+
+        if millions.is_integer():
+            return f"{int(millions)}M"
+
+        return f"{millions:.1f}M".replace(".", ",")
+
+    # 1.000.000.000+
+    billions = view_count / 1_000_000_000
+
+    if billions.is_integer():
+        return f"{int(billions)}B"
+
+    return f"{billions:.1f}B".replace(".", ",")
