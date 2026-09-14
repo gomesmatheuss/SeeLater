@@ -8,6 +8,10 @@ class GridService:
         self.all_tabs = []
         self.all_videos = {}
 
+        # Cache dos resultados processados.
+        # A chave é o termo de pesquisa.
+        self.video_cache = {}
+
     def load_data(self, hard_refresh=False):
         """
         Carrega os dados utilizados pelo Grid.
@@ -19,6 +23,10 @@ class GridService:
         if hard_refresh or not self.all_tabs:
             self.all_tabs = get_tabs_list()
             self.all_videos = get_all_videos()
+
+            # Como os dados foram atualizados, os resultados
+            # antigos do cache deixam de ser válidos.
+            self.video_cache.clear()
 
     def get_filtered_tabs(self, search_term=""):
         """
@@ -37,43 +45,21 @@ class GridService:
             )
         ]
 
-    def get_page_tabs(
-        self,
-        current_page,
-        items_per_page,
-        search_term="",
-        hard_refresh=False
-    ):
+    def get_valid_videos(self, search_term=""):
         """
-        Retorna somente os Tabs pertencentes à página atual.
+        Retorna os Videos válidos para o termo de pesquisa.
+
+        O resultado é armazenado em cache para que a conversão
+        dos Tabs em Videos aconteça apenas uma vez por pesquisa.
         """
 
-        self.load_data(hard_refresh)
+        search_term = search_term.lower()
+
+        # Se já processamos essa pesquisa, reutilizamos o resultado.
+        if search_term in self.video_cache:
+            return self.video_cache[search_term]
 
         tabs = self.get_filtered_tabs(search_term)
-
-        start = current_page * items_per_page
-        end = start + items_per_page
-
-        return tabs[start:end]
-
-    def get_page_videos(
-        self,
-        current_page,
-        items_per_page,
-        search_term="",
-        hard_refresh=False
-    ):
-        """
-        Retorna os Videos da página atual.
-        """
-
-        tabs = self.get_page_tabs(
-            current_page=current_page,
-            items_per_page=items_per_page,
-            search_term=search_term,
-            hard_refresh=hard_refresh
-        )
 
         videos = []
 
@@ -86,14 +72,39 @@ class GridService:
             if video:
                 videos.append(video)
 
+        self.video_cache[search_term] = videos
+
         return videos
+
+    def get_page_videos(
+        self,
+        current_page,
+        items_per_page,
+        search_term="",
+        hard_refresh=False
+    ):
+        """
+        Retorna somente os Videos válidos pertencentes
+        à página atual.
+        """
+
+        self.load_data(hard_refresh)
+
+        videos = self.get_valid_videos(search_term)
+
+        start = current_page * items_per_page
+        end = start + items_per_page
+
+        return videos[start:end]
 
     def get_total_items(self, search_term=""):
         """
-        Retorna a quantidade total de Tabs encontrados
+        Retorna a quantidade de Videos válidos encontrados
         pela pesquisa atual.
         """
 
-        return len(
-            self.get_filtered_tabs(search_term)
-        )
+        self.load_data()
+
+        videos = self.get_valid_videos(search_term)
+
+        return len(videos)

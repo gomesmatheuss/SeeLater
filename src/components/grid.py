@@ -1,6 +1,7 @@
 import flet as ft
 from components.video_card import Card
 from components.fab_button import FABButton
+from components.grid_pagination import GridPagination
 from services.grid_service import GridService
 
 
@@ -10,9 +11,8 @@ class Grid(ft.Column):
 
         self.page = page
 
-        self.current_page = 0
-        self.items_per_page = 54
         self.search_term = ""
+        self.items_per_page = 54
 
         self.service = GridService()
 
@@ -32,18 +32,11 @@ class Grid(ft.Column):
             vertical_alignment=ft.CrossAxisAlignment.START
         )
 
-        self.pagination_controls = ft.Row(
-            controls=[
-                ft.TextButton(
-                    "Anterior",
-                    on_click=self.previous_page
-                ),
-                ft.TextButton(
-                    "Próximo",
-                    on_click=self.next_page
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER
+        self.pagination_controls = GridPagination(
+            on_page_change=self.on_page_change,
+            current_page=0,
+            total_items=0,
+            items_per_page=self.items_per_page
         )
 
         self.controls = [
@@ -54,14 +47,14 @@ class Grid(ft.Column):
         self.update_cards()
 
     def on_video_added(self):
-        """
-        Chamado quando um novo vídeo é adicionado.
-        """
-
-        self.current_page = 0
-
         self.update_cards(
             hard_refresh=True
+        )
+
+    def on_page_change(self, page):
+
+        self.update_cards(
+            change_page=True
         )
 
     def update_cards(
@@ -73,10 +66,12 @@ class Grid(ft.Column):
 
         if not change_page:
             self.search_term = search_term
-            self.current_page = 0
+            self.pagination_controls.current_page = 0
+
+        current_page = self.pagination_controls.current_page
 
         videos = self.service.get_page_videos(
-            current_page=self.current_page,
+            current_page=current_page,
             items_per_page=self.items_per_page,
             search_term=self.search_term,
             hard_refresh=hard_refresh
@@ -93,34 +88,13 @@ class Grid(ft.Column):
 
         self.cards_row.controls = cards
 
-        self.page.update()
-
-    def next_page(self, e):
         total_items = self.service.get_total_items(
             self.search_term
         )
 
-        total_pages = max(
-            1,
-            (total_items + self.items_per_page - 1)
-            // self.items_per_page
+        self.pagination_controls.set_data(
+            current_page=current_page,
+            total_items=total_items
         )
 
-        if self.current_page + 1 >= total_pages:
-            return
-
-        self.current_page += 1
-
-        self.update_cards(
-            change_page=True
-        )
-
-    def previous_page(self, e):
-        if self.current_page <= 0:
-            return
-
-        self.current_page -= 1
-
-        self.update_cards(
-            change_page=True
-        )
+        self.page.update()
