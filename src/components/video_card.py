@@ -147,14 +147,14 @@ class Card(ft.Column):
         page.update()
 
     def watched_click(self, e):
+        e.control.page.open(
+            ft.SnackBar(
+                ft.Text(f"Marked as viewed: {self.video.title}"),
+                open=True
+            )
+        )
+
         set_watched(self.video.id)
 
         self.grid.update_cards(hard_refresh=True)
 
-        e.control.page.open(
-            ft.SnackBar(
-                ft.Text(f"Marked as viewed: {self.video.title}"),
-                open=True,
-                duration=2
-            )
-        )

@@ -101,4 +101,3 @@ def load_card_info(tab: dict, VIDEOS):
             return Video.from_dict(VIDEOS.get(yt_id))
 
         return get_not_loaded_video_info(tab)
-
