@@ -81,3 +81,8 @@ ft.app(main)
 #ok - TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
 #TODO: Adicionar Podcasts via RSS
+
+
+#alterações
+#TODO: alterar o deletar tag, para ter uma mensagem desejando altera todos os registros de tabs, ou apenas remover sem altera o banco
+#TODO: Ao clicar em uma tag no gerenciador de tags, abrir a pagina filtrando videos com aquela tag

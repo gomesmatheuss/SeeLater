@@ -1,5 +1,11 @@
+
 from services.video_service import load_card_info
-from services.db_service import get_tabs_list, get_all_videos, set_watched
+from services.db_service import (
+    get_tabs_list,
+    get_all_videos,
+    get_all_tags,
+    set_watched
+)
 
 
 class GridService:
@@ -7,6 +13,9 @@ class GridService:
     def __init__(self):
         self.all_tabs = []
         self.all_videos = {}
+        self.all_tags = []
+
+        self.tabs_by_url = {}
 
         # Cache dos resultados processados.
         # A chave é o termo de pesquisa.
@@ -15,17 +24,20 @@ class GridService:
     def load_data(self, hard_refresh=False):
         """
         Carrega os dados utilizados pelo Grid.
-
-        Os dados ficam em memória para evitar consultas
-        desnecessárias ao banco durante a navegação.
         """
 
         if hard_refresh or not self.all_tabs:
             self.all_tabs = get_tabs_list()
             self.all_videos = get_all_videos()
+            self.all_tags = get_all_tags()
 
-            # Como os dados foram atualizados, os resultados
-            # antigos do cache deixam de ser válidos.
+            # Indexa os Tabs pela URL.
+            self.tabs_by_url = {
+                tab["url"]: tab
+                for tab in self.all_tabs
+            }
+
+            # Invalida os resultados antigos.
             self.video_cache.clear()
 
     def get_filtered_tabs(self, search_term=""):
@@ -48,14 +60,10 @@ class GridService:
     def get_valid_videos(self, search_term=""):
         """
         Retorna os Videos válidos para o termo de pesquisa.
-
-        O resultado é armazenado em cache para que a conversão
-        dos Tabs em Videos aconteça apenas uma vez por pesquisa.
         """
 
         search_term = search_term.lower()
 
-        # Se já processamos essa pesquisa, reutilizamos o resultado.
         if search_term in self.video_cache:
             return self.video_cache[search_term]
 
@@ -76,15 +84,43 @@ class GridService:
 
         return videos
 
-    def get_page_videos(
-            self,
-            current_page,
-            items_per_page,
-            search_term="",
-            hard_refresh=False
-        ):
+    def get_video_tags(self, video):
         """
-        Retorna somente os Videos válidos pertencentes
+        Retorna as tags associadas ao vídeo,
+        incluindo suas respectivas cores.
+        """
+
+        tab = self.tabs_by_url.get(video.url)
+
+        if not tab:
+            return []
+
+        tags_by_name = {
+            tag["name"]: tag
+            for tag in self.all_tags
+        }
+
+        return [
+            {
+                "name": tag_name,
+                "color": tags_by_name[tag_name].get(
+                    "color",
+                    "#2196F3"
+                )
+            }
+            for tag_name in tab.get("tags", [])
+            if tag_name in tags_by_name
+        ]
+
+    def get_page_videos(
+        self,
+        current_page,
+        items_per_page,
+        search_term="",
+        hard_refresh=False
+    ):
+        """
+        Retorna somente os Videos pertencentes
         à página atual.
         """
 
@@ -99,8 +135,7 @@ class GridService:
 
     def get_total_items(self, search_term=""):
         """
-        Retorna a quantidade de Videos válidos encontrados
-        pela pesquisa atual.
+        Retorna a quantidade de Videos encontrados.
         """
 
         self.load_data()
@@ -116,7 +151,4 @@ class GridService:
 
         set_watched(video.id)
 
-        # O vídeo marcado como visto pode deixar de aparecer
-        # nos resultados atuais.
         self.video_cache.clear()
-

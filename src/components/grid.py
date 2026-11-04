@@ -1,4 +1,5 @@
 import flet as ft
+
 from components.video_card import Card
 from components.fab_button import FABButton
 from components.grid_pagination import GridPagination
@@ -6,6 +7,7 @@ from services.grid_service import GridService
 
 
 class Grid(ft.Column):
+
     def __init__(self, page: ft.Page):
         super().__init__()
 
@@ -52,7 +54,6 @@ class Grid(ft.Column):
         )
 
     def on_page_change(self, page):
-
         self.update_cards(
             change_page=True
         )
@@ -81,7 +82,8 @@ class Grid(ft.Column):
             Card(
                 video,
                 self.page,
-                self.on_card_changed
+                self.on_card_changed,
+                tags=self.service.get_video_tags(video)
             )
             for video in videos
         ]

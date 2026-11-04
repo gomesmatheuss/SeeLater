@@ -1,4 +1,5 @@
 import flet as ft
+
 from services.utils import format_timestamp, format_view_count
 from models.video import Video
 from components.edit_video_alertdialog import EditVideo
@@ -27,7 +28,7 @@ class CardTexts(ft.Column):
                         on_click=self.copy_url_to_clipboard,
                         content=ft.Text(
                             value=video.title,
-                            max_lines=2,
+                            max_lines=1,
                             overflow=ft.TextOverflow.ELLIPSIS,
                             size=13,
                             font_family="Roboto",
@@ -111,7 +112,8 @@ class Card(ft.Column):
         self,
         video: Video,
         page: ft.Page,
-        on_changed=None
+        on_changed=None,
+        tags=None
     ):
         super().__init__()
 
@@ -119,10 +121,13 @@ class Card(ft.Column):
         self.page = page
         self.on_changed = on_changed
 
+        self.tags = tags or []
+
         self.width = 280
         self.alignment = ft.MainAxisAlignment.START
 
         self.controls = [
+            # Thumbnail
             ft.Row(
                 [
                     ft.Container(
@@ -163,6 +168,7 @@ class Card(ft.Column):
                 ]
             ),
 
+            # Informações do vídeo
             ft.Row(
                 [
                     ft.Container(
@@ -236,6 +242,90 @@ class Card(ft.Column):
             )
         ]
 
+        # Faixa de tags: somente aparece quando existem tags.
+        if self.tags:
+            self.controls.append(
+                self.create_tags_bar()
+            )
+
+    def create_tags_bar(self):
+
+        self.tags_list = ft.ListView(
+            horizontal=True,
+            spacing=5,
+            padding=0,
+            height=22,
+            auto_scroll=False,
+            controls=[
+                ft.Container(
+                    height=18,
+                    margin=0,
+                    padding=ft.padding.symmetric(
+                        horizontal=9,
+                        vertical=0
+                    ),
+                    alignment=ft.alignment.center,
+                    bgcolor=tag["color"],
+                    border_radius=5,
+                    content=ft.Text(
+                        value=tag["name"],
+                        size=10,
+                        color=ft.Colors.WHITE,
+                        weight=ft.FontWeight.BOLD,
+                        max_lines=1,
+                        no_wrap=True,
+                        style=ft.TextStyle(height=1.0)
+                    )
+                )
+                for tag in self.tags
+            ]
+        )
+
+        return ft.Row(
+            height=24,
+            spacing=2,
+            alignment=ft.MainAxisAlignment.CENTER,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            controls=[
+                ft.IconButton(
+                    icon=ft.Icons.CHEVRON_LEFT,
+                    icon_size=19,
+                    width=22,
+                    height=24,
+                    padding=0,
+                    on_click=self.scroll_tags_left
+                ),
+
+                ft.Container(
+                    expand=True,
+                    height=22,
+                    padding=0,
+                    content=self.tags_list
+                ),
+
+                ft.IconButton(
+                    icon=ft.Icons.CHEVRON_RIGHT,
+                    icon_size=19,
+                    width=22,
+                    height=24,
+                    padding=0,
+                    on_click=self.scroll_tags_right
+                )
+            ]
+        )
+
+    def scroll_tags_left(self, e):
+        self.tags_list.scroll_to(
+            delta=-160,
+            duration=200
+        )
+
+    def scroll_tags_right(self, e):
+        self.tags_list.scroll_to(
+            delta=160,
+            duration=200
+        )
+
     def open_edit_video_dialog(self, e):
         dlg = EditVideo(self.video)
 
@@ -257,4 +347,3 @@ class Card(ft.Column):
 
         if self.on_changed:
             self.on_changed(self.video)
-
