@@ -7,6 +7,7 @@ client = MongoClient(MONGO_URI)
 db = client["seelater"]
 videos_collection = db["videos"]
 tabs_collection = db["tabs"]
+tags_collection = db["tags"]
 
 def save_video(video_dict):
     videos_collection.update_one(
@@ -56,3 +57,157 @@ def set_watched(video_id):
             "last_update": datetime.now()
         }}
     )
+
+# =========================
+# TAGS
+# =========================
+
+def get_all_tags():
+    """
+    Retorna todas as tags cadastradas.
+    """
+    return list(
+        tags_collection.find().sort("name", 1)
+    )
+
+
+def get_tag_by_id(tag_id):
+    """
+    Busca uma tag pelo seu ID.
+    """
+    from bson import ObjectId
+
+    return tags_collection.find_one({
+        "_id": ObjectId(tag_id)
+    })
+
+
+def save_tag(name, color="#2196F3", description=""):
+    """
+    Cria uma nova tag.
+    """
+    import re
+
+    name = name.strip()
+    description = description.strip()
+
+    if not name:
+        raise ValueError("O nome da tag não pode ficar vazio.")
+
+    existing = tags_collection.find_one({
+        "name": {
+            "$regex": f"^{re.escape(name)}$",
+            "$options": "i"
+        }
+    })
+
+    if existing:
+        raise ValueError("Já existe uma tag com esse nome.")
+
+    result = tags_collection.insert_one({
+        "name": name,
+        "color": color,
+        "description": description
+    })
+
+    return result.inserted_id
+
+
+def update_tag(tag_id, name, color, description=""):
+    """
+    Atualiza o nome, a cor e a descrição de uma tag.
+    """
+    from bson import ObjectId
+    import re
+
+    name = name.strip()
+    description = description.strip()
+
+    if not name:
+        raise ValueError("O nome da tag não pode ficar vazio.")
+
+    existing = tags_collection.find_one({
+        "name": {
+            "$regex": f"^{re.escape(name)}$",
+            "$options": "i"
+        },
+        "_id": {"$ne": ObjectId(tag_id)}
+    })
+
+    if existing:
+        raise ValueError("Já existe outra tag com esse nome.")
+
+    old_tag = get_tag_by_id(tag_id)
+
+    if not old_tag:
+        raise ValueError("Tag não encontrada.")
+
+    old_name = old_tag["name"]
+
+    tags_collection.update_one(
+        {"_id": ObjectId(tag_id)},
+        {
+            "$set": {
+                "name": name,
+                "color": color,
+                "description": description
+            }
+        }
+    )
+
+    if old_name != name:
+        tabs_collection.update_many(
+            {"tags": old_name},
+            {"$set": {"tags.$[tag]": name}},
+            array_filters=[{"tag": old_name}]
+        )
+
+
+def delete_tag(tag_id):
+    """
+    Exclui uma tag e remove suas referências dos vídeos.
+    """
+    from bson import ObjectId
+
+    tag = get_tag_by_id(tag_id)
+
+    if not tag:
+        raise ValueError("Tag não encontrada.")
+
+    tags_collection.delete_one({
+        "_id": ObjectId(tag_id)
+    })
+
+    tabs_collection.update_many(
+        {"tags": tag["name"]},
+        {"$pull": {"tags": tag["name"]}}
+    )
+
+
+
+def get_all_tags_with_usage():
+    """
+    Retorna todas as tags com a quantidade de vídeos associados.
+    """
+
+    tags = get_all_tags()
+
+    usage_results = tabs_collection.aggregate([
+        {"$unwind": "$tags"},
+        {
+            "$group": {
+                "_id": "$tags",
+                "count": {"$sum": 1}
+            }
+        }
+    ])
+
+    usage = {
+        item["_id"]: item["count"]
+        for item in usage_results
+    }
+
+    for tag in tags:
+        tag["usage_count"] = usage.get(tag["name"], 0)
+
+    return tags
