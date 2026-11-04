@@ -21,17 +21,20 @@ ft.app(main)
 
 
 #TODO: Criar template para tweets
-
-
+    #TODO: baixar imagem e texto
+    #TODO: baixar comentarios em txt
+#TODO: Criar template para Mercado Livre
+    #TODO: Extrair principais dados
+    #TODO: baixar html ou salvar dados em txt
 
 #ok - TODO: Ajeitar os textos do Card
     #ok - TODO: Trocar fonte
     #ok - TODO: Ajeitar espaço do titulo
-    #TODO: Adicionar tooltip no titulo
+    #ok - TODO: Adicionar tooltip no titulo
 #ok - TODO: Ajeitar a posição da imagem do canal no Card
 #ok - TODO: Adicionar data de upload no Card
 #TODO: Adicionar da badge de verificado (nao importante)
-#TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
+#ok - TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
 
 #ok - TODO: Alterar os index do link em Tabs no Mongo
 #ok - TODO: Resolver problemas de links duplicados
@@ -63,10 +66,10 @@ ft.app(main)
 #TODO: Adicionar categorias no menu lateral
 #TODO: Filtrar por categorias, tags
 #TODO: Botão para copiar o link do video
-#TODO: Adicionar tamanho do video no Card
+#ok - TODO: Adicionar tamanho do video no Card
 
 #TODO: Pegar as infos do canal
-#TODO: Colocar a foto do canal no Card
+#ok - TODO: Colocar a foto do canal no Card
 #TODO: Colocar o link do canal na foto do Card
 #TODO: Colocar um contador com a quantidade total de Tabs
 

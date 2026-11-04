@@ -126,17 +126,39 @@ class Card(ft.Column):
             ft.Row(
                 [
                     ft.Container(
-                        expand=1,
-                        content=ft.Image(
-                            src=video.thumbnail_path,
-                            width=320,
-                            height=180,
-                            fit=ft.ImageFit.COVER,
-                            border_radius=ft.border_radius.all(8),
-                            aspect_ratio=1280 / 720,
-                            expand=True
-                        ),
-                        on_click=self.open_edit_video_dialog
+                        width=280,
+                        height=157.5,
+                        border_radius=ft.border_radius.all(8),
+                        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                        on_click=self.open_edit_video_dialog,
+                        content=ft.Stack(
+                            controls=[
+                                ft.Image(
+                                    src=video.thumbnail_path,
+                                    width=280,
+                                    height=157.5,
+                                    fit=ft.ImageFit.COVER,
+                                ),
+
+                                ft.Container(
+                                    right=6,
+                                    bottom=6,
+                                    bgcolor=ft.Colors.BLACK,
+                                    opacity=0.85,
+                                    padding=ft.padding.symmetric(
+                                        horizontal=6,
+                                        vertical=3
+                                    ),
+                                    border_radius=ft.border_radius.all(4),
+                                    content=ft.Text(
+                                        value=video.duration or "00:00",
+                                        size=11,
+                                        color=ft.Colors.WHITE,
+                                        weight=ft.FontWeight.BOLD
+                                    )
+                                )
+                            ]
+                        )
                     )
                 ]
             ),
