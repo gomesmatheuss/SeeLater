@@ -72,6 +72,12 @@ class LeftNavigationMenu(ft.Column):
                 "Tags",
                 ft.Icons.LABEL_OUTLINE,
                 "tags"
+            ),
+
+            self.navigation_item(
+                "Grupos",
+                ft.Icons.FOLDER_OUTLINED,
+                "groups"
             )
         ]
 
