@@ -1,6 +1,9 @@
 import os
 from pymongo import MongoClient
 from datetime import datetime
+from datetime import datetime
+from bson import ObjectId
+from pymongo.errors import DuplicateKeyError
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI)
@@ -9,6 +12,19 @@ videos_collection = db["videos"]
 tabs_collection = db["tabs"]
 tags_collection = db["tags"]
 groups_collection = db["groups"]
+group_items_collection = db["group_items"]
+
+group_items_collection.create_index(
+    [("group_id", 1), ("url", 1)],
+    unique=True,
+    partialFilterExpression={"url": {"$type": "string"}},
+    name="unique_url_per_group"
+)
+
+group_items_collection.create_index(
+    [("group_id", 1), ("index", 1)],
+    name="group_items_order"
+)
 
 def save_video(video_dict):
     videos_collection.update_one(
@@ -71,7 +87,6 @@ def get_all_tags():
         tags_collection.find().sort("name", 1)
     )
 
-
 def get_tag_by_id(tag_id):
     """
     Busca uma tag pelo seu ID.
@@ -81,7 +96,6 @@ def get_tag_by_id(tag_id):
     return tags_collection.find_one({
         "_id": ObjectId(tag_id)
     })
-
 
 def save_tag(name, color="#2196F3", description=""):
     """
@@ -112,7 +126,6 @@ def save_tag(name, color="#2196F3", description=""):
     })
 
     return result.inserted_id
-
 
 def update_tag(tag_id, name, color, description=""):
     """
@@ -163,7 +176,6 @@ def update_tag(tag_id, name, color, description=""):
             array_filters=[{"tag": old_name}]
         )
 
-
 def delete_tag(tag_id):
     """
     Exclui uma tag e remove suas referências dos vídeos.
@@ -183,8 +195,6 @@ def delete_tag(tag_id):
         {"tags": tag["name"]},
         {"$pull": {"tags": tag["name"]}}
     )
-
-
 
 def get_all_tags_with_usage():
     """
@@ -213,17 +223,11 @@ def get_all_tags_with_usage():
 
     return tags
 
-
-
 # =========================
 # GROUPS
 # =========================
 
 def create_group(name, description=""):
-    """
-    Cria um novo agrupamento.
-    """
-
     name = name.strip()
     description = description.strip()
 
@@ -245,7 +249,6 @@ def create_group(name, description=""):
     result = groups_collection.insert_one({
         "name": name,
         "description": description,
-        "items": [],
         "created_at": now,
         "updated_at": now
     })
@@ -254,53 +257,37 @@ def create_group(name, description=""):
 
 
 def get_all_groups():
-    """
-    Retorna todos os agrupamentos.
-    """
-
-    return list(
-        groups_collection.find().sort("created_at", -1)
-    )
+    return list(groups_collection.find().sort("created_at", -1))
 
 
 def get_group_by_id(group_id):
-    """
-    Busca um agrupamento pelo ID.
-    """
-
-    from bson import ObjectId
-
     return groups_collection.find_one({
         "_id": ObjectId(group_id)
     })
 
 
 def update_group(group_id, name, description=""):
-    """
-    Atualiza as informações de um agrupamento.
-    """
-
-    from bson import ObjectId
-
     name = name.strip()
     description = description.strip()
 
     if not name:
         raise ValueError("O nome do agrupamento não pode ficar vazio.")
 
+    group_object_id = ObjectId(group_id)
+
     existing = groups_collection.find_one({
         "name": {
             "$regex": f"^{name}$",
             "$options": "i"
         },
-        "_id": {"$ne": ObjectId(group_id)}
+        "_id": {"$ne": group_object_id}
     })
 
     if existing:
         raise ValueError("Já existe outro agrupamento com esse nome.")
 
     result = groups_collection.update_one(
-        {"_id": ObjectId(group_id)},
+        {"_id": group_object_id},
         {
             "$set": {
                 "name": name,
@@ -315,99 +302,216 @@ def update_group(group_id, name, description=""):
 
 
 def delete_group(group_id):
-    """
-    Exclui um agrupamento.
-    Os vídeos originais não são afetados.
-    """
-
-    from bson import ObjectId
+    group_object_id = ObjectId(group_id)
 
     result = groups_collection.delete_one({
-        "_id": ObjectId(group_id)
+        "_id": group_object_id
     })
 
     if result.deleted_count == 0:
         raise ValueError("Agrupamento não encontrado.")
 
+    # Exclui os itens pertencentes ao grupo.
+    group_items_collection.delete_many({
+        "group_id": group_object_id
+    })
 
-def add_item_to_group(group_id, media_type, media_id):
+
+# --------------------------------------------------
+# ITENS DOS GRUPOS
+# --------------------------------------------------
+
+def get_group_items(group_id):
     """
-    Adiciona um item ao agrupamento.
-
-    O mesmo item pode pertencer a vários agrupamentos,
-    mas não pode aparecer duplicado no mesmo agrupamento.
+    Retorna todos os itens de um grupo, ordenados pelo índice.
     """
 
-    from bson import ObjectId
+    return list(
+        group_items_collection.find({
+            "group_id": ObjectId(group_id)
+        }).sort([
+            ("index", 1),
+            ("_id", 1)
+        ])
+    )
 
-    item = {
-        "media_type": media_type,
-        "media_id": str(media_id)
-    }
 
-    result = groups_collection.update_one(
-        {"_id": ObjectId(group_id)},
-        {
-            "$addToSet": {
-                "items": item
+def get_group_item_by_id(group_id, item_id):
+    """
+    Busca um item específico dentro de um grupo.
+    """
+
+    return group_items_collection.find_one({
+        "_id": ObjectId(item_id),
+        "group_id": ObjectId(group_id)
+    })
+
+
+def get_group_item_by_url(group_id, url):
+    """
+    Verifica se uma URL já existe dentro do grupo.
+    """
+
+    return group_items_collection.find_one({
+        "group_id": ObjectId(group_id),
+        "url": url
+    })
+
+
+def get_next_group_item_index(group_id):
+    """
+    Retorna o próximo índice disponível no grupo.
+    """
+
+    last_item = group_items_collection.find_one(
+        {"group_id": ObjectId(group_id)},
+        sort=[("index", -1)]
+    )
+
+    return last_item.get("index", -10) + 10 if last_item else 0
+
+
+def create_group_item(group_id, item_data):
+    """
+    Cria um novo item dentro de um grupo.
+
+    Não consulta nem altera as coleções globais de vídeos e Tabs.
+    """
+
+    group_object_id = ObjectId(group_id)
+
+    if not groups_collection.find_one({"_id": group_object_id}):
+        raise ValueError("Agrupamento não encontrado.")
+
+    item = dict(item_data)
+
+    # Campos controlados pelo banco.
+    item.pop("_id", None)
+    item.pop("group_id", None)
+
+    now = datetime.now()
+
+    item["group_id"] = group_object_id
+    item.setdefault("index", get_next_group_item_index(group_id))
+    item.setdefault("created_at", now)
+    item["updated_at"] = now
+
+    try:
+        result = group_items_collection.insert_one(item)
+    except DuplicateKeyError:
+        raise ValueError(
+            "Este conteúdo já existe neste agrupamento."
+        )
+
+    groups_collection.update_one(
+        {"_id": group_object_id},
+        {"$set": {"updated_at": now}}
+    )
+
+    return str(result.inserted_id)
+
+
+def update_group_item(group_id, item_id, updates):
+    """
+    Atualiza os dados de um item específico.
+    """
+
+    group_object_id = ObjectId(group_id)
+    item_object_id = ObjectId(item_id)
+
+    if not isinstance(updates, dict) or not updates:
+        return
+
+    updates = dict(updates)
+
+    # Não permite alterar os identificadores e datas de criação.
+    for field in ("_id", "group_id", "created_at"):
+        updates.pop(field, None)
+
+    updates["updated_at"] = datetime.now()
+
+    try:
+        result = group_items_collection.update_one(
+            {
+                "_id": item_object_id,
+                "group_id": group_object_id
             },
-            "$set": {
-                "updated_at": datetime.now()
-            }
-        }
-    )
+            {"$set": updates}
+        )
+    except DuplicateKeyError:
+        raise ValueError(
+            "Este conteúdo já existe neste agrupamento."
+        )
 
     if result.matched_count == 0:
+        raise ValueError("Item não encontrado neste agrupamento.")
+
+    groups_collection.update_one(
+        {"_id": group_object_id},
+        {"$set": {"updated_at": datetime.now()}}
+    )
+
+
+def remove_group_item(group_id, item_id):
+    """
+    Remove um item do grupo, sem afetar outros registros.
+    """
+
+    group_object_id = ObjectId(group_id)
+
+    result = group_items_collection.delete_one({
+        "_id": ObjectId(item_id),
+        "group_id": group_object_id
+    })
+
+    if result.deleted_count == 0:
+        raise ValueError("Item não encontrado neste agrupamento.")
+
+    groups_collection.update_one(
+        {"_id": group_object_id},
+        {"$set": {"updated_at": datetime.now()}}
+    )
+
+
+def reorder_group_items(group_id, item_ids):
+    """
+    Atualiza a ordem dos itens de um grupo.
+
+    Recebe uma lista de IDs na ordem desejada.
+    """
+
+    group_object_id = ObjectId(group_id)
+
+    if not groups_collection.find_one({"_id": group_object_id}):
         raise ValueError("Agrupamento não encontrado.")
 
+    object_ids = [ObjectId(item_id) for item_id in item_ids]
 
-def remove_item_from_group(group_id, media_type, media_id):
-    """
-    Remove um item de um agrupamento.
-    Não exclui o item original do banco.
-    """
+    existing_items = list(
+        group_items_collection.find({
+            "group_id": group_object_id,
+            "_id": {"$in": object_ids}
+        }, {"_id": 1})
+    )
 
-    from bson import ObjectId
+    if len(existing_items) != len(object_ids):
+        raise ValueError(
+            "A lista contém itens inexistentes ou de outro agrupamento."
+        )
 
-    result = groups_collection.update_one(
-        {"_id": ObjectId(group_id)},
-        {
-            "$pull": {
-                "items": {
-                    "media_type": media_type,
-                    "media_id": str(media_id)
-                }
+    for index, item_id in enumerate(object_ids):
+        group_items_collection.update_one(
+            {
+                "_id": item_id,
+                "group_id": group_object_id
             },
-            "$set": {
-                "updated_at": datetime.now()
-            }
-        }
+            {"$set": {"index": index * 10}}
+        )
+
+    groups_collection.update_one(
+        {"_id": group_object_id},
+        {"$set": {"updated_at": datetime.now()}}
     )
-
-    if result.matched_count == 0:
-        raise ValueError("Agrupamento não encontrado.")
-
-
-def reorder_group_items(group_id, items):
-    """
-    Atualiza a ordem dos itens de um agrupamento.
-    """
-
-    from bson import ObjectId
-
-    result = groups_collection.update_one(
-        {"_id": ObjectId(group_id)},
-        {
-            "$set": {
-                "items": items,
-                "updated_at": datetime.now()
-            }
-        }
-    )
-
-    if result.matched_count == 0:
-        raise ValueError("Agrupamento não encontrado.")
-
 
 def get_tabs_by_urls(urls):
     """

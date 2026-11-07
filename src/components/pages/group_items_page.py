@@ -1,12 +1,10 @@
-
 import flet as ft
 
-from components.video_card import Card
+from components.group_items.group_item_card import GroupItemCard
 from components.search_bar import SearchBar
 from components.grid_pagination import GridPagination
-
 from services.group_service import GroupService
-from services.db_service import set_watched
+from components.group_items.import_group_items_dialog import ImportGroupItemsDialog
 
 
 class GroupItemsPage(ft.Column):
@@ -29,7 +27,6 @@ class GroupItemsPage(ft.Column):
         self.scroll = ft.ScrollMode.HIDDEN
         self.spacing = 5
 
-        # Cabeçalho
         self.header = ft.Row(
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
@@ -54,16 +51,19 @@ class GroupItemsPage(ft.Column):
                             visible=bool(group.get("description"))
                         )
                     ]
+                ),
+                ft.ElevatedButton(
+                    "Importar itens",
+                    icon=ft.Icons.UPLOAD_FILE,
+                    on_click=self.open_import_dialog
                 )
             ]
         )
 
-        # Pesquisa
         self.search_bar = SearchBar(
             on_search=self.on_search
         )
 
-        # Cards
         self.cards_row = ft.Row(
             spacing=15,
             run_spacing=15,
@@ -71,7 +71,6 @@ class GroupItemsPage(ft.Column):
             vertical_alignment=ft.CrossAxisAlignment.START
         )
 
-        # Paginação
         self.pagination_controls = GridPagination(
             on_page_change=self.on_page_change,
             current_page=0,
@@ -110,21 +109,24 @@ class GroupItemsPage(ft.Column):
 
         filtered_items = []
 
-        for video in self.all_items:
+        for item in self.all_items:
 
-            tags = self.service.get_video_tags(video)
+            tags = self.service.get_item_tags(item)
 
             tag_names = [
                 tag["name"].lower()
                 for tag in tags
             ]
 
+            title = item.get("title", "").lower()
+            url = item.get("url", "").lower()
+
             if (
-                search_term in video.title.lower()
-                or search_term in video.url.lower()
+                search_term in title
+                or search_term in url
                 or any(search_term in tag for tag in tag_names)
             ):
-                filtered_items.append(video)
+                filtered_items.append(item)
 
         return filtered_items
 
@@ -150,13 +152,12 @@ class GroupItemsPage(ft.Column):
         page_items = filtered_items[start:end]
 
         self.cards_row.controls = [
-            Card(
-                video,
-                self.page,
-                self.on_card_changed,
-                tags=self.service.get_video_tags(video)
+            GroupItemCard(
+                item=item,
+                page=self.page,
+                tags=self.service.get_item_tags(item)
             )
-            for video in page_items
+            for item in page_items
         ]
 
         if not filtered_items:
@@ -164,7 +165,7 @@ class GroupItemsPage(ft.Column):
                 ft.Container(
                     padding=30,
                     content=ft.Text(
-                        "Nenhum vídeo encontrado neste grupo.",
+                        "Nenhum item encontrado neste grupo.",
                         color=ft.Colors.GREY_400
                     )
                 )
@@ -177,10 +178,16 @@ class GroupItemsPage(ft.Column):
 
         self.page.update()
 
-    def on_card_changed(self, video):
+    def open_import_dialog(self, e):
 
-        set_watched(video.id)
+        existing_items = self.service.get_group_items(
+            group_id=str(self.group["_id"])
+        )
 
-        self.service.invalidate_cache()
+        dialog = ImportGroupItemsDialog(
+            group=self.group,
+            existing_items=existing_items
+        )
 
-        self.load_items(hard_refresh=True)
+        self.page.open(dialog)
+

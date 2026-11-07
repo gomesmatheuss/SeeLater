@@ -10,6 +10,7 @@ class GroupCard(ft.Column):
         self,
         group: dict,
         preview_items: list,
+        item_count=0,
         on_click=None,
         on_edit=None,
         on_delete=None
@@ -18,6 +19,8 @@ class GroupCard(ft.Column):
 
         self.group = group
         self.preview_items = preview_items
+        self.item_count = item_count
+
         self.on_click_callback = on_click
         self.on_edit_callback = on_edit
         self.on_delete_callback = on_delete
@@ -31,21 +34,42 @@ class GroupCard(ft.Column):
             self.create_information()
         ]
 
-    def create_thumbnail(self):
+    def create_placeholder(self):
+        return ft.Container(
+            expand=True,
+            bgcolor=ft.Colors.GREY_800,
+            alignment=ft.alignment.center,
+            content=ft.Icon(
+                ft.Icons.PLAY_CIRCLE_OUTLINE,
+                size=35,
+                color=ft.Colors.GREY_500
+            )
+        )
 
-        items = self.preview_items[:4]
+    def create_item_preview(self, item):
 
-        images = [
-            ft.Image(
-                src=item.thumbnail_path,
+        thumbnail_path = item.get("thumbnail_path")
+
+        if thumbnail_path:
+            return ft.Image(
+                src=thumbnail_path,
                 fit=ft.ImageFit.COVER,
                 width=280,
                 height=157.5
             )
+
+        return self.create_placeholder()
+
+    def create_thumbnail(self):
+
+        items = self.preview_items[:4]
+
+        previews = [
+            self.create_item_preview(item)
             for item in items
         ]
 
-        if not images:
+        if not previews:
             content = ft.Container(
                 width=280,
                 height=157.5,
@@ -58,22 +82,22 @@ class GroupCard(ft.Column):
                 )
             )
 
-        elif len(images) == 1:
-            content = images[0]
+        elif len(previews) == 1:
+            content = previews[0]
 
-        elif len(images) == 2:
+        elif len(previews) == 2:
             content = ft.Row(
                 spacing=2,
                 controls=[
                     ft.Container(
                         expand=1,
                         height=157.5,
-                        content=images[0]
+                        content=previews[0]
                     ),
                     ft.Container(
                         expand=1,
                         height=157.5,
-                        content=images[1]
+                        content=previews[1]
                     )
                 ]
             )
@@ -82,9 +106,9 @@ class GroupCard(ft.Column):
             quadrants = [
                 ft.Container(
                     expand=1,
-                    content=image
+                    content=preview
                 )
-                for image in images
+                for preview in previews
             ]
 
             if len(quadrants) == 3:
@@ -125,14 +149,12 @@ class GroupCard(ft.Column):
         name = self.group.get("name", "Sem nome")
         description = self.group.get("description", "")
 
-        item_count = len(self.group.get("items", []))
-
         updated_at = self.group.get("updated_at")
 
-        if updated_at:
-            updated_text = format_timestamp(updated_at)
-        else:
-            updated_text = ""
+        updated_text = (
+            format_timestamp(updated_at)
+            if updated_at else ""
+        )
 
         return ft.Row(
             vertical_alignment=ft.CrossAxisAlignment.START,
@@ -151,7 +173,7 @@ class GroupCard(ft.Column):
                         ),
 
                         ft.Text(
-                            value=f"{item_count} itens",
+                            value=f"{self.item_count} itens",
                             size=11,
                             color=ft.Colors.GREY_400
                         ),
@@ -183,7 +205,6 @@ class GroupCard(ft.Column):
                             height=30,
                             on_click=self.edit_group
                         ),
-
                         ft.PopupMenuItem(
                             text="Excluir",
                             height=30,

@@ -2,66 +2,28 @@
 from services.db_service import (
     get_all_groups,
     get_group_by_id,
-    get_all_videos,
-    get_tabs_by_urls,
+    get_group_items,
     get_all_tags
 )
-
-from services.video_service import ensure_channel_thumbnail
-from models.video import Video
 
 
 class GroupService:
 
     def __init__(self):
         self.groups_cache = None
-        self.videos_cache = None
-
-        self.tabs_by_url = {}
+        self.items_cache = {}
         self.tags_by_name = {}
-        self.metadata_loaded = False
+        self.tags_loaded = False
+
+    # --------------------------------------------------
+    # GRUPOS
+    # --------------------------------------------------
 
     def load_groups(self, hard_refresh=False):
         if self.groups_cache is None or hard_refresh:
             self.groups_cache = get_all_groups()
 
         return self.groups_cache
-
-    def load_videos(self, hard_refresh=False):
-        if self.videos_cache is None or hard_refresh:
-            self.videos_cache = get_all_videos()
-
-        return self.videos_cache
-
-    def load_metadata(self, videos, hard_refresh=False):
-        """
-        Carrega as informações de Tabs e Tags,
-        incluindo vídeos inativos ou marcados como vistos.
-        """
-
-        if self.metadata_loaded and not hard_refresh:
-            return
-
-        urls = [
-            video.get("url")
-            for video in videos.values()
-            if video.get("url")
-        ]
-
-        tabs = get_tabs_by_urls(urls)
-        tags = get_all_tags()
-
-        self.tabs_by_url = {
-            tab["url"]: tab
-            for tab in tabs
-        }
-
-        self.tags_by_name = {
-            tag["name"]: tag
-            for tag in tags
-        }
-
-        self.metadata_loaded = True
 
     def get_groups(self, hard_refresh=False):
         return self.load_groups(hard_refresh)
@@ -84,74 +46,90 @@ class GroupService:
 
         return group
 
+    # --------------------------------------------------
+    # ITENS DOS GRUPOS
+    # --------------------------------------------------
+
     def get_group_items(self, group_id, hard_refresh=False):
-
-        group = self.get_group(group_id, hard_refresh)
-
-        if not group:
-            return []
-
-        videos = self.load_videos(hard_refresh)
-
-        self.load_metadata(videos, hard_refresh)
-
-        items = []
-
-        for item in group.get("items", []):
-
-            media_type = item.get("media_type")
-            media_id = str(item.get("media_id"))
-
-            if media_type != "video":
-                continue
-
-            video_data = videos.get(media_id)
-
-            if not video_data:
-                continue
-
-            video = Video.from_dict(video_data)
-            video = ensure_channel_thumbnail(video)
-
-            items.append(video)
-
-        return items
-
-    def get_video_tags(self, video):
         """
-        Retorna as tags associadas ao vídeo,
-        incluindo suas respectivas cores.
+        Retorna os documentos independentes de um grupo.
+
+        Não consulta as coleções globais de vídeos ou Tabs.
         """
 
-        tab = self.tabs_by_url.get(video.url)
+        group_id = str(group_id)
 
-        if not tab:
-            return []
+        if group_id not in self.items_cache or hard_refresh:
+            group = self.get_group(group_id, hard_refresh)
+
+            if not group:
+                return []
+
+            self.items_cache[group_id] = get_group_items(group_id)
+
+        return self.items_cache[group_id]
+
+    def get_group_preview(self, group_id, limit=4):
+        """
+        Retorna os primeiros itens do grupo para sua prévia.
+        """
+
+        return self.get_group_items(group_id)[:limit]
+
+    # --------------------------------------------------
+    # TAGS
+    # --------------------------------------------------
+
+    def load_tags(self, hard_refresh=False):
+        """
+        Carrega as tags cadastradas e suas cores.
+        """
+
+        if not self.tags_loaded or hard_refresh:
+            tags = get_all_tags()
+
+            self.tags_by_name = {
+                tag["name"]: tag
+                for tag in tags
+            }
+
+            self.tags_loaded = True
+
+    def get_item_tags(self, item, hard_refresh=False):
+        """
+        Retorna as tags de um item com suas respectivas cores.
+
+        As tags pertencem ao próprio documento do item,
+        não mais à Tab global.
+        """
+
+        self.load_tags(hard_refresh)
+
+        if isinstance(item, dict):
+            tag_names = item.get("tags", [])
+        else:
+            tag_names = []
 
         return [
             {
                 "name": tag_name,
-                "color": self.tags_by_name[tag_name].get(
-                    "color",
-                    "#2196F3"
-                )
+                "color": self.tags_by_name.get(
+                    tag_name, {}
+                ).get("color", "#2196F3")
             }
-            for tag_name in tab.get("tags", [])
-            if tag_name in self.tags_by_name
+            for tag_name in tag_names
         ]
 
-    def get_group_preview(self, group_id, limit=4):
+    # Compatibilidade temporária com chamadas antigas.
+    def get_video_tags(self, item):
+        return self.get_item_tags(item)
 
-        items = self.get_group_items(group_id)
-
-        return items[:limit]
+    # --------------------------------------------------
+    # CACHE
+    # --------------------------------------------------
 
     def invalidate_cache(self):
-
         self.groups_cache = None
-        self.videos_cache = None
-
-        self.tabs_by_url.clear()
+        self.items_cache.clear()
         self.tags_by_name.clear()
-
-        self.metadata_loaded = False
+        self.tags_loaded = False

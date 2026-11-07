@@ -58,15 +58,15 @@ class GroupsPage(ft.Column):
 
         for group in groups:
 
-            preview_items = self.service.get_group_preview(
-                str(group["_id"]),
-                limit=4
-            )
+            group_id = str(group["_id"])
+
+            all_items = self.service.get_group_items(group_id)
 
             cards.append(
                 GroupCard(
                     group=group,
-                    preview_items=preview_items,
+                    preview_items=all_items[:4],
+                    item_count=len(all_items),
                     on_click=self.open_group,
                     on_edit=self.open_edit_dialog,
                     on_delete=self.confirm_delete_group
