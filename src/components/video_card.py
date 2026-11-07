@@ -265,12 +265,13 @@ class Card(ft.Column):
                         vertical=0
                     ),
                     alignment=ft.alignment.center,
-                    bgcolor=tag["color"],
+                    bgcolor=ft.Colors.TRANSPARENT,
+                    border=ft.border.all(1, tag["color"]),
                     border_radius=5,
                     content=ft.Text(
                         value=tag["name"],
                         size=10,
-                        color=ft.Colors.WHITE,
+                        color=tag["color"],
                         weight=ft.FontWeight.BOLD,
                         max_lines=1,
                         no_wrap=True,

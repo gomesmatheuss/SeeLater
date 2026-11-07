@@ -6,6 +6,7 @@ from services.db_service import (
     get_all_tags,
     set_watched
 )
+from models.enums.load_status import LoadStatus
 
 
 class GridService:
@@ -152,3 +153,43 @@ class GridService:
         set_watched(video.id)
 
         self.video_cache.clear()
+
+    def get_pending_tabs(self, videos):
+        """
+        Retorna somente os Tabs que ainda não foram
+        carregados e estão aguardando processamento.
+        """
+
+        pending_tabs = []
+
+        pending_statuses = {
+            LoadStatus.JSON_IMPORTED,
+            LoadStatus.READY_FOR_LOAD
+        }
+
+        for video in videos:
+
+            tab = self.tabs_by_url.get(video.url)
+
+            if not tab:
+                continue
+
+            status = tab.get(
+                "load_status",
+                LoadStatus.LOAD_FAILED
+            )
+
+            # Compatibilidade com registros antigos.
+            if type(status) == int:
+                status = LoadStatus.LOAD_FAILED
+
+            try:
+                status = LoadStatus(status)
+
+            except (ValueError, TypeError):
+                continue
+
+            if status in pending_statuses:
+                pending_tabs.append(tab)
+
+        return pending_tabs

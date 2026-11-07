@@ -1,9 +1,12 @@
+
 import flet as ft
 
 from components.video_card import Card
 from components.fab_button import FABButton
 from components.grid_pagination import GridPagination
+
 from services.grid_service import GridService
+from services.video_queue_service import get_video_queue
 
 
 class Grid(ft.Column):
@@ -17,6 +20,9 @@ class Grid(ft.Column):
         self.items_per_page = 54
 
         self.service = GridService()
+
+        # Instância compartilhada da fila.
+        self.video_queue = get_video_queue()
 
         self.expand = True
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -47,6 +53,10 @@ class Grid(ft.Column):
         ]
 
         self.update_cards()
+
+    # ==================================
+    # ATUALIZAÇÃO DOS CARDS
+    # ==================================
 
     def on_video_added(self):
         self.update_cards(
@@ -99,7 +109,72 @@ class Grid(ft.Column):
             total_items=total_items
         )
 
+        # Solicita o carregamento dos vídeos pendentes.
+        self.enqueue_pending_videos(videos)
+
         self.page.update()
+
+    # ==================================
+    # FILA DE CARREGAMENTO
+    # ==================================
+
+    def enqueue_pending_videos(self, videos):
+
+        pending_tabs = self.service.get_pending_tabs(
+            videos
+        )
+
+        for tab in pending_tabs:
+
+            try:
+                self.video_queue.enqueue(
+                    tab,
+                    on_complete=self.on_video_load_complete
+                )
+
+            except Exception as e:
+
+                print(
+                    f"Erro ao adicionar vídeo à fila: {e}"
+                )
+
+    def on_video_load_complete(
+        self,
+        video_id,
+        video,
+        error
+    ):
+
+        # Em caso de falha, não atualiza a página
+        # automaticamente, evitando novas tentativas
+        # consecutivas sem intervenção.
+        if error is not None:
+            return
+
+        try:
+            # Encaminha a atualização para o loop
+            # de execução da página Flet.
+            self.page.run_task(
+                self.refresh_after_video_load
+            )
+
+        except Exception as e:
+
+            print(
+                "Erro ao agendar atualização da Home:",
+                e
+            )
+
+    async def refresh_after_video_load(self):
+
+        self.update_cards(
+            change_page=True,
+            hard_refresh=True
+        )
+
+    # ==================================
+    # ALTERAÇÕES NOS CARDS
+    # ==================================
 
     def on_card_changed(self, video):
         """

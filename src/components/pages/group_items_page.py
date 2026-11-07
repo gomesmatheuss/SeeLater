@@ -4,6 +4,7 @@ from components.group_items.group_item_card import GroupItemCard
 from components.search_bar import SearchBar
 from components.grid_pagination import GridPagination
 from services.group_service import GroupService
+from services.video_queue_service import get_video_queue
 from components.group_items.import_group_items_dialog import ImportGroupItemsDialog
 
 
@@ -17,6 +18,7 @@ class GroupItemsPage(ft.Column):
         self.on_back = on_back
 
         self.service = GroupService()
+        self.video_queue = get_video_queue()
 
         self.search_term = ""
         self.items_per_page = 54
@@ -130,6 +132,29 @@ class GroupItemsPage(ft.Column):
 
         return filtered_items
 
+    def enqueue_pending_items(self, items):
+        pending_items = self.service.get_pending_items(items)
+
+        for item in pending_items:
+            self.video_queue.enqueue(
+                item,
+                on_complete=self.on_video_load_complete
+            )
+
+
+    def on_video_load_complete(self, video_id, video, error):
+        if error:
+            return
+
+        try:
+            self.page.run_task(self.refresh_after_video_load)
+        except Exception as e:
+            print(f"Erro ao atualizar grupo após carregamento: {e}")
+
+
+    async def refresh_after_video_load(self):
+        self.load_items(hard_refresh=True)
+
     def on_search(self, query):
 
         self.search_term = query or ""
@@ -175,6 +200,8 @@ class GroupItemsPage(ft.Column):
             current_page=current_page,
             total_items=len(filtered_items)
         )
+
+        self.enqueue_pending_items(page_items)
 
         self.page.update()
 

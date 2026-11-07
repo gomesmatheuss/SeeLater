@@ -526,3 +526,71 @@ def get_tabs_by_urls(urls):
             "url": {"$in": urls}
         })
     )
+
+def update_video_load_status(video_id, status, url=None):
+    """
+    Atualiza o status de carregamento de um vídeo
+    em todas as coleções relacionadas.
+
+    Atualiza:
+        - videos
+        - tabs
+        - group_items
+
+    O ID do vídeo é utilizado como identificador principal.
+    A URL serve como alternativa para registros antigos
+    que ainda não possuem content_id ou media_id.
+    """
+
+    status = getattr(status, "value", status)
+    now = datetime.now()
+
+    # Atualiza ou cria o registro global do vídeo.
+    videos_collection.update_one(
+        {"id": video_id},
+        {
+            "$set": {
+                "load_status": status,
+                "last_update": now
+            }
+        },
+        upsert=True
+    )
+
+    # Identifica as Tabs relacionadas.
+    tab_conditions = [
+        {"content_id": video_id}
+    ]
+
+    if url:
+        tab_conditions.append({"url": url})
+
+    tabs_collection.update_many(
+        {"$or": tab_conditions},
+        {
+            "$set": {
+                "load_status": status,
+                "content_id": video_id,
+                "last_update": now
+            }
+        }
+    )
+
+    # Identifica os itens dos grupos relacionados.
+    group_item_conditions = [
+        {"media_id": video_id}
+    ]
+
+    if url:
+        group_item_conditions.append({"url": url})
+
+    group_items_collection.update_many(
+        {"$or": group_item_conditions},
+        {
+            "$set": {
+                "load_status": status,
+                "media_id": video_id,
+                "updated_at": now
+            }
+        }
+    )

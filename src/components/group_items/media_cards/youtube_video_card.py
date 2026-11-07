@@ -1,5 +1,6 @@
 
 import flet as ft
+from services.utils import format_timestamp, format_view_count
 
 
 class CardTexts(ft.Column):
@@ -79,7 +80,8 @@ class CardTexts(ft.Column):
                         padding=ft.padding.only(top=-6),
                         expand=1,
                         content=ft.Text(
-                            "0 visualizações - --/--/----",
+                            f"{format_view_count(item.get('view_count', 0))} visualizações - "
+                            f"{format_timestamp(item.get('upload_date'))}",
                             max_lines=1,
                             overflow=ft.TextOverflow.ELLIPSIS,
                             size=11,
@@ -285,12 +287,13 @@ class YouTubeVideoCard(ft.Column):
                         vertical=0
                     ),
                     alignment=ft.alignment.center,
-                    bgcolor=tag["color"],
+                    bgcolor=ft.Colors.TRANSPARENT,
+                    border=ft.border.all(1, tag["color"]),
                     border_radius=5,
                     content=ft.Text(
                         value=tag["name"],
                         size=10,
-                        color=ft.Colors.WHITE,
+                        color=tag["color"],
                         weight=ft.FontWeight.BOLD,
                         max_lines=1,
                         no_wrap=True,
