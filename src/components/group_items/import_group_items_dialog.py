@@ -1,9 +1,12 @@
-
 import json
 import flet as ft
-from urllib.parse import urlparse
 
-from services.db_service import get_all_tags
+from urllib.parse import urlparse, parse_qs
+
+from services.db_service import (
+    get_all_tags,
+    create_group_item
+)
 
 
 MEDIA_TYPES = [
@@ -20,11 +23,17 @@ MEDIA_TYPES = [
 
 class ImportGroupItemsDialog(ft.AlertDialog):
 
-    def __init__(self, group: dict, existing_items=None):
+    def __init__(
+        self,
+        group: dict,
+        existing_items=None,
+        on_import_complete=None
+    ):
         super().__init__()
 
         self.group = group
         self.existing_items = existing_items or []
+        self.on_import_complete = on_import_complete
 
         self.existing_urls = {
             item.get("url", "").strip()
@@ -70,6 +79,13 @@ class ImportGroupItemsDialog(ft.AlertDialog):
             expand=True,
             spacing=5,
             controls=[]
+        )
+
+        self.import_button = ft.OutlinedButton(
+            text="Importar",
+            icon=ft.Icons.DOWNLOAD,
+            disabled=True,
+            on_click=self.import_selected_items
         )
 
         self.modal = True
@@ -127,7 +143,11 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         )
 
         self.actions = [
-            ft.TextButton("Cancelar", on_click=self.close)
+            ft.TextButton(
+                "Cancelar",
+                on_click=self.close
+            ),
+            self.import_button
         ]
 
         self.actions_alignment = ft.MainAxisAlignment.END
@@ -137,6 +157,10 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         self.preview_title = self.title
         self.preview_actions = self.actions
 
+    # ---------------------------------------------------------
+    # CICLO DE VIDA
+    # ---------------------------------------------------------
+
     def did_mount(self):
         self.page.overlay.append(self.file_picker)
         self.page.update()
@@ -144,6 +168,10 @@ class ImportGroupItemsDialog(ft.AlertDialog):
     def will_unmount(self):
         if self.file_picker in self.page.overlay:
             self.page.overlay.remove(self.file_picker)
+
+    # ---------------------------------------------------------
+    # ARQUIVO JSON
+    # ---------------------------------------------------------
 
     def pick_file(self, e):
         self.file_picker.pick_files(
@@ -233,8 +261,13 @@ class ImportGroupItemsDialog(ft.AlertDialog):
 
             self.select_all.value = False
             self.selected_count.value = "0 selecionados"
+            self.import_button.disabled = True
 
             self.page.update()
+
+    # ---------------------------------------------------------
+    # DETECÇÃO DO TIPO DE MÍDIA
+    # ---------------------------------------------------------
 
     def detect_media_type(self, url):
 
@@ -274,6 +307,36 @@ class ImportGroupItemsDialog(ft.AlertDialog):
 
         except Exception:
             return "website"
+
+    def extract_media_id(self, url, media_type):
+
+        if media_type not in ("youtube_video", "youtube_shorts"):
+            return None
+
+        try:
+            parsed = urlparse(url)
+            hostname = parsed.netloc.lower().split(":")[0]
+
+            if hostname == "youtu.be":
+                return parsed.path.strip("/").split("/")[0] or None
+
+            query = parse_qs(parsed.query)
+
+            if query.get("v"):
+                return query["v"][0]
+
+            path_parts = [
+                part for part in parsed.path.split("/")
+                if part
+            ]
+
+            if len(path_parts) >= 2 and path_parts[0] == "shorts":
+                return path_parts[1]
+
+        except Exception:
+            pass
+
+        return None
 
     def create_media_type_dropdown(self, item, index):
 
@@ -486,7 +549,6 @@ class ImportGroupItemsDialog(ft.AlertDialog):
             self.page.update()
             return
 
-        # Define quais itens receberão a alteração.
         if apply_to_all.value:
 
             target_items = [
@@ -534,6 +596,103 @@ class ImportGroupItemsDialog(ft.AlertDialog):
 
         self.close_bulk_tags_editor()
         self.update_preview()
+
+    # ---------------------------------------------------------
+    # IMPORTAÇÃO PARA O GRUPO
+    # ---------------------------------------------------------
+
+    def import_selected_items(self, e):
+
+        selected_items = [
+            item for item in self.items
+            if item["selected"] and not item["duplicate"]
+        ]
+
+        if not selected_items:
+            self.show_message(
+                "Selecione pelo menos um item para importar."
+            )
+            return
+
+        imported_items = []
+        errors = []
+
+        group_id = str(self.group["_id"])
+
+        for item in selected_items:
+
+            item_data = {
+                "media_type": item["media_type"],
+                "media_id": self.extract_media_id(
+                    item["url"],
+                    item["media_type"]
+                ),
+                "url": item["url"],
+                "title": item["title"],
+                "priority": "low",
+                "tags": list(item.get("tags", [])),
+                "load_status": "json_imported"
+            }
+
+            try:
+                create_group_item(
+                    group_id=group_id,
+                    item_data=item_data
+                )
+
+                imported_items.append(item)
+
+            except Exception as error:
+                errors.append(
+                    f'{item["title"]}: {error}'
+                )
+
+        # Atualiza a lista local para impedir que itens já gravados
+        # sejam enviados novamente em uma nova tentativa.
+        for item in imported_items:
+
+            item["selected"] = False
+            item["duplicate"] = True
+            item["duplicate_reason"] = "Importado nesta operação"
+
+            self.existing_urls.add(item["url"])
+
+        if imported_items and self.on_import_complete:
+            self.on_import_complete()
+
+        if errors:
+
+            self.update_preview()
+
+            message = (
+                f"{len(imported_items)} importados; "
+                f"{len(errors)} não puderam ser importados."
+            )
+
+            if imported_items:
+                message += " Os itens restantes continuam disponíveis para nova tentativa."
+
+            self.show_message(message)
+
+            print("Erros durante a importação:")
+            for error in errors:
+                print(error)
+
+            return
+
+        self.page.close(self)
+
+        self.show_message(
+            f"{len(imported_items)} itens importados com sucesso!"
+        )
+
+    def show_message(self, message):
+
+        self.page.open(
+            ft.SnackBar(
+                content=ft.Text(message)
+            )
+        )
 
     # ---------------------------------------------------------
     # PRÉ-VISUALIZAÇÃO
@@ -658,6 +817,8 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         self.select_all.value = (
             total > 0 and selected == total
         )
+
+        self.import_button.disabled = selected == 0
 
         self.page.update()
 

@@ -60,7 +60,10 @@ class GroupsPage(ft.Column):
 
             group_id = str(group["_id"])
 
-            all_items = self.service.get_group_items(group_id)
+            all_items = self.service.get_group_items(
+                group_id,
+                hard_refresh=hard_refresh
+            )
 
             cards.append(
                 GroupCard(

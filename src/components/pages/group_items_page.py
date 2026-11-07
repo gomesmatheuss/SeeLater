@@ -186,7 +186,8 @@ class GroupItemsPage(ft.Column):
 
         dialog = ImportGroupItemsDialog(
             group=self.group,
-            existing_items=existing_items
+            existing_items=existing_items,
+            on_import_complete=lambda: self.load_items(hard_refresh=True)
         )
 
         self.page.open(dialog)
