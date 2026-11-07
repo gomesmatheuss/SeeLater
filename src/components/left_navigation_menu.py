@@ -1,8 +1,8 @@
-
 import flet as ft
 
 
 class LeftNavigationMenu(ft.Column):
+
     def __init__(self, on_navigate):
         super().__init__()
 
@@ -17,6 +17,7 @@ class LeftNavigationMenu(ft.Column):
         self.build_menu()
 
     def navigation_item(self, title, icon, page_key):
+
         selected = self.selected_page == page_key
 
         return ft.Container(
@@ -52,6 +53,7 @@ class LeftNavigationMenu(ft.Column):
         )
 
     def build_menu(self):
+
         self.controls = [
             ft.Container(
                 padding=10,
@@ -78,10 +80,17 @@ class LeftNavigationMenu(ft.Column):
                 "Grupos",
                 ft.Icons.FOLDER_OUTLINED,
                 "groups"
+            ),
+
+            self.navigation_item(
+                "Fila",
+                ft.Icons.DOWNLOAD,
+                "queue"
             )
         ]
 
     def set_selected(self, page_key):
+
         self.selected_page = page_key
         self.build_menu()
         self.update()

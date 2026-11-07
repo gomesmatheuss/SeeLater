@@ -40,17 +40,17 @@ ft.app(main)
 #ok - TODO: Resolver problemas de links duplicados
 
 #ok - TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
-    #TODO: Selecionar e desselecionar todos os item de uma vez
-    #TODO: Contador de items selecionados
-    #TODO: Tela de adicionar tags
+    #ok - TODO: Selecionar e desselecionar todos os item de uma vez
+    #ok - TODO: Contador de items selecionados
+    #ok - TODO: Tela de adicionar tags
     #ok - TODO: Salvar no MongoDB
 
-    #TODO: Mostrar itens duplicados
-    #TODO: Atualizar as tags de itens duplicados
+    #ok - TODO: Mostrar itens duplicados
+    #ok* - TODO: Atualizar as tags de itens duplicados
 
 #ok - TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
     #TODO: Colocar um botão para baixar as infos e thumb do video
-    #TODO: Baixar as info de forma asyncrona
+    #ok - TODO: Baixar as info de forma asyncrona
 
 
 #ok - TODO: Adicionar barra de pesquisa
@@ -62,13 +62,13 @@ ft.app(main)
 
 #TODO: Ao dar update no grid, verificar itens para apagar(thumb) e baixar
 
-#TODO: Adicionar as tags no Card do video
+#ok - TODO: Adicionar as tags no Card do video
 #TODO: Adicionar categorias no menu lateral
 #TODO: Filtrar por categorias, tags
 #TODO: Botão para copiar o link do video
 #ok - TODO: Adicionar tamanho do video no Card
 
-#TODO: Pegar as infos do canal
+#ok - TODO: Pegar as infos do canal
 #ok - TODO: Colocar a foto do canal no Card
 #TODO: Colocar o link do canal na foto do Card
 #TODO: Colocar um contador com a quantidade total de Tabs
@@ -76,13 +76,52 @@ ft.app(main)
 #ok - TODO: Alterar o tamanho da thumb baixada
 #TODO: Remover thumbs de videos assistidos/deletados
 
-#TODO: Criar tabela com tags
-#TODO: Trocar input das tags para um combobox
+#ok - TODO: Criar tabela com tags
+#ok - TODO: Trocar input das tags para um combobox
 #ok - TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
 #TODO: Adicionar Podcasts via RSS
+
+#TODO: Adicionar sistema de Backup
 
 
 #alterações
 #TODO: alterar o deletar tag, para ter uma mensagem desejando altera todos os registros de tabs, ou apenas remover sem altera o banco
 #TODO: Ao clicar em uma tag no gerenciador de tags, abrir a pagina filtrando videos com aquela tag
+
+
+# ==========================================
+# Melhorias sugeridas pelo gpt
+# ==========================================
+# ok - 1. Gerenciamento da fila de carregamento
+# ok - - Exibir vídeos aguardando carregamento.
+# ok - - Mostrar quais estão sendo processados.
+# ok* - - Criar uma forma de iniciar e controlar a fila manualmente.
+# - Permitir tentar novamente os itens que falharam.
+# - Criar botão no Card para enviar para a fila.
+# - Permitir exclusão individual dos item concluidos e falhados.
+#
+# 2. Suporte a outros tipos de mídia
+# - Link generico.
+# - Podcasts.
+# - Sites e artigos.
+# - Tweets e publicações.
+# - Outros conteúdos salvos por URL.
+# 
+# 3. Melhorias na Home
+# - Filtros por tipo de mídia.
+# - Ordenação por visualizações, data e prioridade.
+# - Melhorias na pesquisa.
+# - Filtros mais avançados por tags.
+#
+# 4. Melhorias na gestão dos grupos
+# - Reordenar itens.
+# - Mover itens entre grupos.
+# - Melhorar as opções do menu de cada card.
+# - Permitir editar informações dos itens.
+#
+# 5. Revisão e estabilidade
+# - Corrigir suporte a URLs youtu.be.
+# - Revisar Tab.from_dict().
+# - Revisar cache e sincronização entre Home e grupos.
+# - Melhorar tratamento de erros.

@@ -13,6 +13,7 @@ tabs_collection = db["tabs"]
 tags_collection = db["tags"]
 groups_collection = db["groups"]
 group_items_collection = db["group_items"]
+queue_history_collection = db["video_queue_history"]
 
 group_items_collection.create_index(
     [("group_id", 1), ("url", 1)],
@@ -594,3 +595,64 @@ def update_video_load_status(video_id, status, url=None):
             }
         }
     )
+
+# ==================================
+# HISTÓRICO DA FILA DE CARREGAMENTO
+# ==================================
+
+def save_queue_history(video_id, title, url, success, error=None):
+    """
+    Registra o resultado de um carregamento na fila.
+    """
+
+    history_item = {
+        "video_id": video_id,
+        "title": title,
+        "url": url,
+        "success": success,
+        "error": str(error) if error else None,
+        "completed_at": datetime.now()
+    }
+
+    result = queue_history_collection.insert_one(
+        history_item
+    )
+
+    return str(result.inserted_id)
+
+
+def get_queue_history(success=None):
+    """
+    Retorna o histórico de carregamentos.
+
+    success:
+        True  = concluídos
+        False = falhas
+        None  = todos
+    """
+
+    query = {}
+
+    if success is not None:
+        query["success"] = success
+
+    return list(
+        queue_history_collection.find(query).sort(
+            "completed_at", -1
+        )
+    )
+
+
+def clear_queue_history(success):
+    """
+    Limpa o histórico de acordo com o resultado.
+
+    True  = concluídos
+    False = falhas
+    """
+
+    result = queue_history_collection.delete_many({
+        "success": success
+    })
+
+    return result.deleted_count

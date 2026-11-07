@@ -7,7 +7,8 @@ from services.utils import get_yt_url_code
 from services.video_service import get_video_info
 from services.db_service import (
     save_video,
-    update_video_load_status
+    update_video_load_status,
+    save_queue_history
 )
 
 
@@ -27,6 +28,8 @@ class VideoQueueService:
         self.lock = RLock()
 
         self.tasks = {}
+
+        self.paused = False
 
     # ==================================
     # PROCESSAMENTO
@@ -52,7 +55,6 @@ class VideoQueueService:
 
     def _run_processor(self, video_id, item):
 
-        # Atualiza o status no banco dentro do worker.
         update_video_load_status(
             video_id,
             LoadStatus.LOADING,
@@ -60,6 +62,57 @@ class VideoQueueService:
         )
 
         return self.processor(item)
+
+    # ==================================
+    # CONTROLE INTERNO DA FILA
+    # ==================================
+
+    def _dispatch_pending_locked(self):
+
+        started_tasks = []
+
+        if self.paused:
+            return started_tasks
+
+        running = sum(
+            1
+            for task in self.tasks.values()
+            if task.get("status") == "running"
+        )
+
+        for video_id, task in self.tasks.items():
+
+            if running >= self.max_workers:
+                break
+
+            if task.get("status") != "waiting":
+                continue
+
+            future = self.executor.submit(
+                self._run_processor,
+                video_id,
+                task["item"]
+            )
+
+            task["future"] = future
+            task["status"] = "running"
+
+            started_tasks.append(
+                (video_id, future)
+            )
+
+            running += 1
+
+        return started_tasks
+
+    def _attach_callbacks(self, started_tasks):
+
+        for video_id, future in started_tasks:
+
+            future.add_done_callback(
+                lambda result, vid=video_id:
+                self.on_task_complete(vid, result)
+            )
 
     # ==================================
     # ADICIONAR À FILA
@@ -93,8 +146,7 @@ class VideoQueueService:
 
         with self.lock:
 
-            # Se já existe uma tarefa para esse vídeo,
-            # apenas adiciona o novo callback.
+            # Evita tarefas duplicadas.
             if video_id in self.tasks:
 
                 if (
@@ -108,43 +160,46 @@ class VideoQueueService:
                 return False
 
             self.tasks[video_id] = {
-                "callbacks": [],
-                "url": url
+                "item": task_data,
+                "url": url,
+                "status": "waiting",
+                "future": None,
+                "callbacks": (
+                    [on_complete]
+                    if on_complete
+                    else []
+                )
             }
 
-            if on_complete:
-                self.tasks[video_id]["callbacks"].append(
-                    on_complete
-                )
+            started_tasks = self._dispatch_pending_locked()
 
-            try:
-
-                future = self.executor.submit(
-                    self._run_processor,
-                    video_id,
-                    task_data
-                )
-
-                self.tasks[video_id]["future"] = future
-
-                future.add_done_callback(
-                    lambda result, vid=video_id:
-                    self.on_task_complete(vid, result)
-                )
-
-            except Exception:
-
-                self.tasks.pop(video_id, None)
-
-                update_video_load_status(
-                    video_id,
-                    LoadStatus.LOAD_FAILED,
-                    url
-                )
-
-                raise
+        self._attach_callbacks(started_tasks)
 
         return True
+
+    # ==================================
+    # PAUSAR E RETOMAR
+    # ==================================
+
+    def pause(self):
+
+        with self.lock:
+            self.paused = True
+
+    def resume(self):
+
+        with self.lock:
+
+            self.paused = False
+
+            started_tasks = self._dispatch_pending_locked()
+
+        self._attach_callbacks(started_tasks)
+
+    def is_paused(self):
+
+        with self.lock:
+            return self.paused
 
     # ==================================
     # FINALIZAÇÃO DA TAREFA
@@ -167,16 +222,21 @@ class VideoQueueService:
                 e
             )
 
-        # Atualiza o status independentemente
-        # do resultado do processamento.
+        # Recupera os dados da tarefa antes de removê-la.
+        with self.lock:
+
+            task = self.tasks.get(video_id)
+
+            task_url = task["url"] if task else None
+
+            task_title = (
+                task["item"]["title"]
+                if task
+                else task_url
+            )
+
+        # Atualiza o status no banco.
         try:
-
-            task_url = None
-
-            with self.lock:
-                task_url = self.tasks.get(
-                    video_id, {}
-                ).get("url")
 
             update_video_load_status(
                 video_id,
@@ -198,7 +258,28 @@ class VideoQueueService:
             if error is None:
                 error = e
 
-        # Remove a tarefa e recupera os callbacks.
+        # Registra o resultado no histórico permanente.
+        try:
+
+            if task:
+
+                save_queue_history(
+                    video_id=video_id,
+                    title=task_title,
+                    url=task_url,
+                    success=error is None,
+                    error=error
+                )
+
+        except Exception as e:
+
+            # Uma falha no histórico não deve interromper a fila.
+            print(
+                f"Erro ao salvar histórico do vídeo {video_id}:",
+                e
+            )
+
+        # Remove a tarefa concluída e libera espaço na fila.
         with self.lock:
 
             task = self.tasks.pop(
@@ -212,7 +293,13 @@ class VideoQueueService:
                 else []
             )
 
-        # Executa os callbacks fora do lock.
+            # Inicia o próximo item somente se
+            # a fila não estiver pausada.
+            started_tasks = self._dispatch_pending_locked()
+
+        self._attach_callbacks(started_tasks)
+
+        # Executa os callbacks.
         for callback in callbacks:
 
             try:
@@ -238,6 +325,23 @@ class VideoQueueService:
         with self.lock:
             return video_id in self.tasks
 
+    def get_tasks(self):
+
+        with self.lock:
+
+            tasks = []
+
+            for video_id, task in self.tasks.items():
+
+                tasks.append({
+                    "video_id": video_id,
+                    "title": task["item"]["title"],
+                    "url": task["url"],
+                    "status": task["status"]
+                })
+
+            return tasks
+
     def get_status(self):
 
         with self.lock:
@@ -245,16 +349,20 @@ class VideoQueueService:
             running = sum(
                 1
                 for task in self.tasks.values()
-                if task.get("future")
-                and task["future"].running()
+                if task.get("status") == "running"
             )
 
-            total = len(self.tasks)
+            waiting = sum(
+                1
+                for task in self.tasks.values()
+                if task.get("status") == "waiting"
+            )
 
             return {
-                "total": total,
+                "total": len(self.tasks),
                 "running": running,
-                "waiting": total - running,
+                "waiting": waiting,
+                "paused": self.paused,
                 "max_workers": self.max_workers
             }
 
@@ -268,6 +376,7 @@ class VideoQueueService:
             wait=wait,
             cancel_futures=False
         )
+
 
 # ==================================
 # INSTÂNCIA COMPARTILHADA

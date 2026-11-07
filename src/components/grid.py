@@ -1,4 +1,3 @@
-
 import flet as ft
 
 from components.video_card import Card
@@ -14,7 +13,8 @@ class Grid(ft.Column):
     def __init__(self, page: ft.Page):
         super().__init__()
 
-        self.page = page
+        # Referência permanente à página principal.
+        self.app_page = page
 
         self.search_term = ""
         self.items_per_page = 54
@@ -28,8 +28,8 @@ class Grid(ft.Column):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.scroll = ft.ScrollMode.HIDDEN
 
-        self.page.floating_action_button = FABButton(
-            self.page,
+        self.app_page.floating_action_button = FABButton(
+            self.app_page,
             self.on_video_added
         )
 
@@ -91,7 +91,7 @@ class Grid(ft.Column):
         cards = [
             Card(
                 video,
-                self.page,
+                self.app_page,
                 self.on_card_changed,
                 tags=self.service.get_video_tags(video)
             )
@@ -112,7 +112,7 @@ class Grid(ft.Column):
         # Solicita o carregamento dos vídeos pendentes.
         self.enqueue_pending_videos(videos)
 
-        self.page.update()
+        self.app_page.update()
 
     # ==================================
     # FILA DE CARREGAMENTO
@@ -152,9 +152,8 @@ class Grid(ft.Column):
             return
 
         try:
-            # Encaminha a atualização para o loop
-            # de execução da página Flet.
-            self.page.run_task(
+            # Usa a referência permanente da página.
+            self.app_page.run_task(
                 self.refresh_after_video_load
             )
 

@@ -1,4 +1,3 @@
-
 import flet as ft
 
 from components.left_navigation_menu import LeftNavigationMenu
@@ -7,6 +6,7 @@ from components.pages.home_page import HomePage
 from components.pages.tags_page import TagsPage
 from components.pages.groups_page import GroupsPage
 from components.pages.group_items_page import GroupItemsPage
+from components.pages.queue_page import QueuePage
 
 
 class MainPage(ft.Row):
@@ -18,6 +18,7 @@ class MainPage(ft.Row):
 
         self.home_page = HomePage(page)
         self.tags_page = TagsPage(page)
+        self.queue_page = QueuePage(page)
 
         self.groups_page = GroupsPage(
             page,
@@ -49,6 +50,8 @@ class MainPage(ft.Row):
 
     def navigate(self, page_key):
 
+        self.content_area.padding = 0
+
         if page_key == "home":
 
             self.content_area.content = self.home_page
@@ -62,6 +65,18 @@ class MainPage(ft.Row):
         elif page_key == "groups":
 
             self.content_area.content = self.groups_page
+            self.page.floating_action_button = None
+
+        elif page_key == "queue":
+
+            self.content_area.padding = ft.padding.only(
+                left=20,
+                right=10,
+                top=15,
+                bottom=10
+            )
+
+            self.content_area.content = self.queue_page
             self.page.floating_action_button = None
 
         self.left_nav.set_selected(page_key)
@@ -84,10 +99,8 @@ class MainPage(ft.Row):
 
     def back_to_groups(self):
 
-        # Primeiro, recoloca a página na interface.
         self.content_area.content = self.groups_page
 
-        # Depois, atualiza os grupos.
         self.groups_page.update_groups(
             hard_refresh=True
         )
