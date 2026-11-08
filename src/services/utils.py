@@ -11,12 +11,19 @@ def get_yt_url_code(url):
     return url_code[0] if url_code else None
 
 def format_timestamp(timestamp: Union[float, datetime.datetime]) -> str:
+
+    if timestamp is None:
+        return "Data não disponível"
+
     if isinstance(timestamp, (int, float)):
         timestamp = datetime.datetime.fromtimestamp(timestamp)
-    
+
+    if not isinstance(timestamp, datetime.datetime):
+        return "Data não disponível"
+
     agora = datetime.datetime.now()
     diferenca = agora - timestamp if agora > timestamp else timestamp - agora
-    
+
     segundos = int(diferenca.total_seconds())
     minutos = segundos // 60
     horas = minutos // 60
@@ -24,7 +31,7 @@ def format_timestamp(timestamp: Union[float, datetime.datetime]) -> str:
     semanas = dias // 7
     meses = dias // 30
     anos = dias // 365
-    
+
     if segundos < 60:
         return "agora mesmo" if segundos < 10 else f"há {segundos} segundos"
     elif minutos < 60:

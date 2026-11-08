@@ -1,7 +1,12 @@
+
 import flet as ft
 
 from components.group_items.media_cards.youtube_video_card import (
     YouTubeVideoCard
+)
+
+from components.group_items.media_cards.generic_media_card import (
+    GenericMediaCard
 )
 
 
@@ -13,28 +18,20 @@ class GroupItemCard(ft.Container):
         self.item = item
         self.page = page
 
-        media_type = item.get("media_type", "youtube_video")
+        media_type = item.get("media_type", "website")
 
         card_types = {
-            "youtube_video": YouTubeVideoCard
+            "youtube_video": YouTubeVideoCard,
+            "youtube_shorts": YouTubeVideoCard,
         }
 
-        card_class = card_types.get(media_type)
+        card_class = card_types.get(
+            media_type,
+            GenericMediaCard
+        )
 
-        if card_class:
-            self.content = card_class(
-                item=item,
-                page=page,
-                tags=tags
-            )
-        else:
-            self.content = ft.Container(
-                width=280,
-                padding=15,
-                bgcolor=ft.Colors.BLUE_GREY_900,
-                border_radius=8,
-                content=ft.Text(
-                    f"Formato não suportado: {media_type}",
-                    color=ft.Colors.GREY_400
-                )
-            )
+        self.content = card_class(
+            item=item,
+            page=page,
+            tags=tags
+        )

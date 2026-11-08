@@ -18,7 +18,7 @@ class Video:
     channel_thumbnail_path: str = None
     last_update: datetime = datetime.now()
     load_status: LoadStatus = LoadStatus.LOAD_FAILED
-    media_type: MediaType = MediaType.OTHER_SITE
+    media_type: MediaType = MediaType.VIDEO
     active: bool = True
 
     @staticmethod

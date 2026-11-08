@@ -14,6 +14,7 @@ class GroupItemsPage(ft.Column):
         super().__init__()
 
         self.page = page
+        self.app_page = page
         self.group = group
         self.on_back = on_back
 
@@ -141,18 +142,29 @@ class GroupItemsPage(ft.Column):
                 on_complete=self.on_video_load_complete
             )
 
-
     def on_video_load_complete(self, video_id, video, error):
+
         if error:
             return
 
+        # Não atualiza uma tela que não está mais montada.
+        if self.page is None:
+            return
+
         try:
-            self.page.run_task(self.refresh_after_video_load)
+            self.app_page.run_task(
+                self.refresh_after_video_load
+            )
         except Exception as e:
             print(f"Erro ao atualizar grupo após carregamento: {e}")
 
 
     async def refresh_after_video_load(self):
+
+        # A tela pode ter sido desmontada após o agendamento.
+        if self.page is None:
+            return
+
         self.load_items(hard_refresh=True)
 
     def on_search(self, query):

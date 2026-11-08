@@ -102,13 +102,27 @@ class GroupService:
             for item in items:
 
                 media_id = item.get("media_id")
-
                 video_data = videos.get(media_id, {})
 
-                enriched_item = {
-                    **video_data,
-                    **item
-                }
+                enriched_item = {**video_data, **item}
+
+                # Recupera informações do vídeo quando o item do grupo
+                # ainda não possui esses dados.
+                fields_to_inherit = [
+                    "thumbnail_path",
+                    "title",
+                    "uploader",
+                    "view_count",
+                    "upload_date",
+                    "duration",
+                    "channel_id",
+                    "channel_thumbnail_path"
+                ]
+
+                for field in fields_to_inherit:
+
+                    if not enriched_item.get(field):
+                        enriched_item[field] = video_data.get(field)
 
                 enriched_items.append(enriched_item)
 

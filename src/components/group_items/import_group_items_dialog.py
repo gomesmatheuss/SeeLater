@@ -17,7 +17,6 @@ MEDIA_TYPES = [
     ("image", "Imagem"),
     ("article", "Artigo"),
     ("website", "Website"),
-    ("other", "Outro"),
 ]
 
 
@@ -629,6 +628,8 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                 ),
                 "url": item["url"],
                 "title": item["title"],
+                "thumbnail_path": None,
+                "text": None,
                 "priority": "low",
                 "tags": list(item.get("tags", [])),
                 "load_status": "json_imported"
