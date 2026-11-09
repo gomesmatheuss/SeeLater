@@ -20,65 +20,66 @@ def main(page: ft.Page):
 ft.app(main)
 
 
-#TODO: Criar template para tweets
-    #TODO: baixar imagem e texto
-    #TODO: baixar comentarios em txt
-#TODO: Criar template para Mercado Livre
-    #TODO: Extrair principais dados
-    #TODO: baixar html ou salvar dados em txt
-
-#ok - TODO: Ajeitar os textos do Card
-    #ok - TODO: Trocar fonte
-    #ok - TODO: Ajeitar espaço do titulo
-    #ok - TODO: Adicionar tooltip no titulo
-#ok - TODO: Ajeitar a posição da imagem do canal no Card
-#ok - TODO: Adicionar data de upload no Card
-#TODO: Adicionar da badge de verificado (nao importante)
-#ok - TODO: Formatar as visualizações, ex: 3M 1B 900 mil (nao importante)
-
-#ok - TODO: Alterar os index do link em Tabs no Mongo
-#ok - TODO: Resolver problemas de links duplicados
-
-#ok - TODO: Criar tela de confirmação ao inportar .json, listando a qtd total de itens, item validos, e listar todos com uma caixa de seleção
-    #ok - TODO: Selecionar e desselecionar todos os item de uma vez
-    #ok - TODO: Contador de items selecionados
-    #ok - TODO: Tela de adicionar tags
-    #ok - TODO: Salvar no MongoDB
-
-    #ok - TODO: Mostrar itens duplicados
-    #ok* - TODO: Atualizar as tags de itens duplicados
-
-#ok - TODO: Criar o molde do video não carregado (thumb), com titulo - add status no mongo
-    #TODO: Colocar um botão para baixar as infos e thumb do video
-    #ok - TODO: Baixar as info de forma asyncrona
+# ==========================================
+# Melhorias na Home
+# ==========================================
+# 1. Adicionar da badge de verificado (nao importante)
+#
+# 2. Criar template para tweets
+# - baixar imagem e texto
+# - baixar comentarios em txt
+#
+# 3. Criar template para Mercado Livre
+# - Extrair principais dados
+# - baixar html ou salvar dados em txt
+# 
+# 4. Colocar um botão para baixar as infos e thumb do video manualmente por item
+#
+# 5. Adicionar filtro por tags
+#
+# 6. Corrigir a barra de navegação, tipo: 1 10 20 ... 23 24 25 ... 30 40 43
+#
+# 7. Mostar a quantidade total de itens na parte superior proximo à barra de 
+#
+# 8. Apagar thumb(e dados) de itens excluidos no banco
+# 
+# 9. Colocar o link do canal na foto do Card
+# 
+# 10. Alterar o tamanho da thumb baixada (720p)
 
 
-#ok - TODO: Adicionar barra de pesquisa
-    #TODO: Filtrar por tags
-#ok - TODO: Adicionar paginação
-    #TODO: Trocar a barra de navegação por algo mais organizado, tipo 1 ... 3 4 5 6 7 ... 10 20 30 33
-    #TODO: Mostar a quantidade total de itens
-#TODO: Editar os Cards
+# ==========================================
+# Melhorias no grupo
+# ==========================================
+# 1. Personalizar capa
+#
+# 2. Colocar icone e qtd de itens na capa
+#
+# 3. Adição de links individuais.
+#
+# 4. Reorganizar a ordem do itens.
+#
+# 5. Remover itens.
+#
+# 6. Marcar como visto.
 
-#TODO: Ao dar update no grid, verificar itens para apagar(thumb) e baixar
 
-#ok - TODO: Adicionar as tags no Card do video
-#TODO: Adicionar categorias no menu lateral
-#TODO: Filtrar por categorias, tags
-#TODO: Botão para copiar o link do video
-#ok - TODO: Adicionar tamanho do video no Card
+# ==========================================
+# Melhorias na tela de importação de arquivos dos grupos
+# ==========================================
+# 1. Permitir a importação de itens duplicados
+# - Atualizar as tags de itens duplicados
+#
+# 2. Importar um arquivo e excluir o conteudo já presente em outro grupo
+# ex: Grupo1 tem videos sobre programação, quero impotar um arquivo de todas as abas do chrome
+# para o grupo2, menos os videos sobre programação. Teria um botão de opções avançadas, com a
+# opção "remover conteudo já presente nos grupos: selecionar grupos".
 
-#ok - TODO: Pegar as infos do canal
-#ok - TODO: Colocar a foto do canal no Card
-#TODO: Colocar o link do canal na foto do Card
-#TODO: Colocar um contador com a quantidade total de Tabs
 
-#ok - TODO: Alterar o tamanho da thumb baixada
-#TODO: Remover thumbs de videos assistidos/deletados
-
-#ok - TODO: Criar tabela com tags
-#ok - TODO: Trocar input das tags para um combobox
-#ok - TODO: Buscar as info da net ao colar um link na pagina de adicionar Tabs
+# ==========================================
+# Melhorias na tela adicionar um link
+# ==========================================
+# 1. Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
 #TODO: Adicionar Podcasts via RSS
 
@@ -93,20 +94,20 @@ ft.app(main)
 # ==========================================
 # Melhorias sugeridas pelo gpt
 # ==========================================
-# ok - 1. Gerenciamento da fila de carregamento
-# ok - - Exibir vídeos aguardando carregamento.
-# ok - - Mostrar quais estão sendo processados.
-# ok* - - Criar uma forma de iniciar e controlar a fila manualmente.
+# ok 1. Gerenciamento da fila de carregamento
+# ok - Exibir vídeos aguardando carregamento.
+# ok - Mostrar quais estão sendo processados.
+# ok* - Criar uma forma de iniciar e controlar a fila manualmente.
 # - Permitir tentar novamente os itens que falharam.
 # - Criar botão no Card para enviar para a fila.
 # - Permitir exclusão individual dos item concluidos e falhados.
 #
-# 2. Suporte a outros tipos de mídia
-# - Link generico.
+# ok 2. Suporte a outros tipos de mídia
+# ok - Outros conteúdos salvos por URL.
 # - Podcasts.
 # - Sites e artigos.
 # - Tweets e publicações.
-# - Outros conteúdos salvos por URL.
+# - Anuncios do Mercado Livre.
 # 
 # 3. Melhorias na Home
 # - Filtros por tipo de mídia.

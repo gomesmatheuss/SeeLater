@@ -182,6 +182,116 @@ def get_channel_thumbnail(channel_url, channel_id):
         return None
 
 
+def download_video_thumbnail(thumb_url, video_id, thumb_path):
+    """
+    Baixa a thumbnail na maior resolução disponível.
+
+    Prioridade:
+    maxresdefault (1280x720)
+    sddefault
+    hqdefault
+    mqdefault
+    """
+
+    resolutions = [
+        "maxresdefault",
+        "sddefault",
+        "hqdefault",
+        "mqdefault"
+    ]
+
+    for resolution in resolutions:
+
+        thumb_url_quality = re.sub(
+            r"(maxresdefault|sddefault|hqdefault|mqdefault)",
+            resolution,
+            thumb_url
+        )
+
+        temp_path = thumb_path + ".tmp"
+
+        try:
+            urllib.request.urlretrieve(
+                thumb_url_quality,
+                temp_path
+            )
+
+            if os.path.getsize(temp_path) > 0:
+                os.replace(temp_path, thumb_path)
+
+                print(
+                    f"Thumbnail baixada: {resolution} - {video_id}"
+                )
+
+                return thumb_path
+
+        except Exception as e:
+
+            print(
+                f"Thumbnail {resolution} indisponível para {video_id}"
+            )
+
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    raise Exception(
+        f"Não foi possível baixar a thumbnail do vídeo {video_id}"
+    )
+
+def ensure_video_thumbnail(video: Video):
+    """
+    Garante que o vídeo tenha uma thumbnail disponível.
+
+    Se o arquivo não existir, tenta baixá-lo novamente
+    utilizando o ID do vídeo.
+    """
+
+    if not video.id:
+        return video
+
+    thumb_path = os.path.join(
+        CACHE_DIR,
+        f"{video.id}.jpg"
+    )
+
+    # A thumbnail já existe.
+    if os.path.exists(thumb_path):
+        video.thumbnail_path = thumb_path
+        return video
+
+    print(
+        "Thumbnail não encontrada no cache. Baixando novamente:",
+        video.id
+    )
+
+    try:
+        thumb_url = (
+            f"https://i.ytimg.com/vi/"
+            f"{video.id}/maxresdefault.jpg"
+        )
+
+        download_video_thumbnail(
+            thumb_url,
+            video.id,
+            thumb_path
+        )
+
+        video.thumbnail_path = thumb_path
+
+    except Exception as e:
+        print(
+            "Não foi possível recuperar a thumbnail:",
+            video.id,
+            e
+        )
+
+        video.thumbnail_path = os.path.join(
+            CACHE_DIR,
+            "image-not-found.png"
+        )
+
+    return video
+
 def get_video_info(tab: dict):
     cache_key = get_yt_url_code(
         tab.get("url", "")
@@ -193,7 +303,12 @@ def get_video_info(tab: dict):
     if (
         existing := get_video_by_id(cache_key)
     ) and existing.get("load_status") == LoadStatus.LOAD_SUCCESS:
-        return Video.from_dict(existing)
+
+        video = Video.from_dict(existing)
+
+        video = ensure_video_thumbnail(video)
+
+        return video
 
     try:
         print(
@@ -217,21 +332,16 @@ def get_video_info(tab: dict):
 
         data = json.loads(result.stdout)
 
-        thumb_url = re.sub(
-            r"(hqdefault|maxresdefault|sddefault)",
-            "mqdefault",
-            data.get("thumbnail")
-        )
-
         thumb_path = os.path.join(
             CACHE_DIR,
             f"{cache_key}.jpg"
         )
 
-        # Não baixa novamente a thumbnail se ela já existir.
+        # Baixa a melhor resolução disponível.
         if not os.path.exists(thumb_path):
-            urllib.request.urlretrieve(
-                thumb_url,
+            download_video_thumbnail(
+                data.get("thumbnail"),
+                cache_key,
                 thumb_path
             )
 
@@ -397,8 +507,12 @@ def load_card_info(tab: dict, VIDEOS):
                 video_data
             )
 
-            # Garante o avatar também para vídeos
-            # que já existiam antes dessa implementação.
+            # Garante que a thumbnail esteja disponível.
+            video = ensure_video_thumbnail(
+                video
+            )
+
+            # Garante o avatar do canal.
             video = ensure_channel_thumbnail(
                 video
             )

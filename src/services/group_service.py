@@ -6,8 +6,10 @@ from services.db_service import (
     get_all_tags,
     get_all_videos
 )
+from services.video_service import ensure_video_thumbnail
 
 from models.enums.load_status import LoadStatus
+from models.video import Video
 
 
 class GroupService:
@@ -19,6 +21,8 @@ class GroupService:
 
         self.tags_by_name = {}
         self.tags_loaded = False
+
+        self.checked_video_thumbnails = set()
 
     # --------------------------------------------------
     # GRUPOS
@@ -127,6 +131,38 @@ class GroupService:
                 enriched_items.append(enriched_item)
 
             self.items_cache[group_id] = enriched_items
+
+        # Verifica se as thumbnails dos vídeos continuam disponíveis.
+        # Essa verificação também acontece quando os itens vêm do cache.
+        for item in self.items_cache[group_id]:
+
+            if item.get("media_type") not in (
+                "youtube_video",
+                "youtube_shorts"
+            ):
+                continue
+
+            media_id = item.get("media_id")
+
+            if not media_id:
+                continue
+
+            # Não verifica novamente vídeos já processados.
+            if media_id in self.checked_video_thumbnails:
+                continue
+
+            video_data = self.videos_cache.get(media_id)
+
+            if not video_data:
+                continue
+
+            video = Video.from_dict(video_data)
+
+            video = ensure_video_thumbnail(video)
+
+            item["thumbnail_path"] = video.thumbnail_path
+
+            self.checked_video_thumbnails.add(media_id)
 
         return self.items_cache[group_id]
 
