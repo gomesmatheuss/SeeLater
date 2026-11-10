@@ -156,6 +156,27 @@ class GroupService:
             if not video_data:
                 continue
 
+            required_fields = [
+                "id",
+                "url",
+                "title",
+                "uploader",
+                "view_count",
+                "thumbnail_path",
+                "upload_date",
+                "duration",
+                "last_update",
+                "load_status",
+                "media_type",
+                "active"
+            ]
+
+            if not all(
+                field in video_data
+                for field in required_fields
+            ):
+                continue
+
             video = Video.from_dict(video_data)
 
             video = ensure_video_thumbnail(video)

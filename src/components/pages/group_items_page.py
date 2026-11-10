@@ -1,10 +1,13 @@
+
 import flet as ft
 
-from components.group_items.group_item_card import GroupItemCard
+from components.media_card_assembler import MediaCardAssembler
+from components.media_collection import MediaCollection
 from components.search_bar import SearchBar
-from components.grid_pagination import GridPagination
+
 from services.group_service import GroupService
 from services.video_queue_service import get_video_queue
+
 from components.group_items.import_group_items_dialog import ImportGroupItemsDialog
 
 
@@ -67,32 +70,44 @@ class GroupItemsPage(ft.Column):
             on_search=self.on_search
         )
 
-        self.cards_row = ft.Row(
-            spacing=15,
-            run_spacing=15,
-            wrap=True,
-            vertical_alignment=ft.CrossAxisAlignment.START
-        )
-
-        self.pagination_controls = GridPagination(
+        self.collection = MediaCollection(
             on_page_change=self.on_page_change,
-            current_page=0,
-            total_items=0,
-            items_per_page=self.items_per_page
+            card_builder=self.create_card,
+            items_per_page=self.items_per_page,
+            empty_message="Nenhum item encontrado neste grupo."
         )
 
         self.controls = [
             self.header,
             self.search_bar,
-            self.cards_row,
-            self.pagination_controls
+            self.collection
         ]
 
         self.load_items()
 
+    # ==================================
+    # NAVEGAÇÃO
+    # ==================================
+
     def go_back(self, e):
         if self.on_back:
             self.on_back()
+
+    # ==================================
+    # CARDS
+    # ==================================
+
+    def create_card(self, item):
+
+        return MediaCardAssembler.create_card(
+            item=item,
+            page=self.page,
+            tags=self.service.get_item_tags(item)
+        )
+
+    # ==================================
+    # CARREGAMENTO DOS ITENS
+    # ==================================
 
     def load_items(self, hard_refresh=False):
 
@@ -133,10 +148,16 @@ class GroupItemsPage(ft.Column):
 
         return filtered_items
 
+    # ==================================
+    # FILA DE CARREGAMENTO
+    # ==================================
+
     def enqueue_pending_items(self, items):
+
         pending_items = self.service.get_pending_items(items)
 
         for item in pending_items:
+
             self.video_queue.enqueue(
                 item,
                 on_complete=self.on_video_load_complete
@@ -155,9 +176,9 @@ class GroupItemsPage(ft.Column):
             self.app_page.run_task(
                 self.refresh_after_video_load
             )
+
         except Exception as e:
             print(f"Erro ao atualizar grupo após carregamento: {e}")
-
 
     async def refresh_after_video_load(self):
 
@@ -167,55 +188,48 @@ class GroupItemsPage(ft.Column):
 
         self.load_items(hard_refresh=True)
 
+    # ==================================
+    # BUSCA E PAGINAÇÃO
+    # ==================================
+
     def on_search(self, query):
 
         self.search_term = query or ""
-        self.pagination_controls.current_page = 0
+        self.collection.pagination.current_page = 0
 
         self.update_cards()
 
     def on_page_change(self, page):
         self.update_cards()
 
+    # ==================================
+    # ATUALIZAÇÃO DA COLEÇÃO
+    # ==================================
+
     def update_cards(self):
 
         filtered_items = self.get_filtered_items()
 
-        current_page = self.pagination_controls.current_page
+        current_page = self.collection.pagination.current_page
 
         start = current_page * self.items_per_page
         end = start + self.items_per_page
 
         page_items = filtered_items[start:end]
 
-        self.cards_row.controls = [
-            GroupItemCard(
-                item=item,
-                page=self.page,
-                tags=self.service.get_item_tags(item)
-            )
-            for item in page_items
-        ]
-
-        if not filtered_items:
-            self.cards_row.controls = [
-                ft.Container(
-                    padding=30,
-                    content=ft.Text(
-                        "Nenhum item encontrado neste grupo.",
-                        color=ft.Colors.GREY_400
-                    )
-                )
-            ]
-
-        self.pagination_controls.set_data(
-            current_page=current_page,
-            total_items=len(filtered_items)
+        self.collection.set_items(
+            items=page_items,
+            total_items=len(filtered_items),
+            current_page=current_page
         )
 
         self.enqueue_pending_items(page_items)
 
         self.page.update()
+
+    # ==================================
+    # IMPORTAÇÃO
+    # ==================================
 
     def open_import_dialog(self, e):
 
@@ -230,4 +244,3 @@ class GroupItemsPage(ft.Column):
         )
 
         self.page.open(dialog)
-

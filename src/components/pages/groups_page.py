@@ -4,9 +4,9 @@ import flet as ft
 from services.group_service import GroupService
 from services.db_service import delete_group
 
-from components.group_card import GroupCard
-from components.add_group_alertdialog import AddGroupDialog
-from components.edit_group_alertdialog import EditGroupDialog
+from components.groups.group_card import GroupCard
+from components.groups.add_group_dialog import AddGroupDialog
+from components.groups.edit_group_dialog import EditGroupDialog
 
 
 class GroupsPage(ft.Column):

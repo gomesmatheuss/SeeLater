@@ -1,6 +1,8 @@
 import flet as ft
-from components.navbar import Navbar
-from components.main_page import MainPage
+
+from components.navigation.navbar import Navbar
+from components.pages.main_page import MainPage
+
 
 def main(page: ft.Page):
     page.title = "SeeLater"
@@ -16,6 +18,7 @@ def main(page: ft.Page):
         Navbar(),
         MainPage(page)
     )
+
 
 ft.app(main)
 
@@ -45,7 +48,7 @@ ft.app(main)
 # 
 # 9. Colocar o link do canal na foto do Card
 # 
-# 10. Alterar o tamanho da thumb baixada (720p)
+# ok 10. Alterar o tamanho da thumb baixada (720p)
 
 
 # ==========================================
@@ -74,6 +77,8 @@ ft.app(main)
 # ex: Grupo1 tem videos sobre programação, quero impotar um arquivo de todas as abas do chrome
 # para o grupo2, menos os videos sobre programação. Teria um botão de opções avançadas, com a
 # opção "remover conteudo já presente nos grupos: selecionar grupos".
+#
+# 3. Permitir criação de novas Tags na tela de Editar Tags
 
 
 # ==========================================
@@ -81,9 +86,27 @@ ft.app(main)
 # ==========================================
 # 1. Buscar as info da net ao colar um link na pagina de adicionar Tabs
 
-#TODO: Adicionar Podcasts via RSS
 
-#TODO: Adicionar sistema de Backup
+# ==========================================
+# Melhorias na tela gerenciamento da fila de Downloads
+# ==========================================
+# 1. Deixar mais com cara de gerenciamentos de downsloads gerais.
+#
+# 2. Adicionar registro dos downloads de thumbs faltantes.
+#
+# 3. Adicionar um botão de baixar/carregar infos em cada Card, para não iniciar um lista gigante automaticamente.
+# - Poder selecinar os items de uma pagina (home e grupo), e ao selecionar tem um botão de opções com
+#   a opção de baixar todos itens selecionados.
+
+
+# ==========================================
+# Melhorias na arquitetura
+# ==========================================
+# 1. Adicionar Podcasts via RSS.
+#
+# 2. Adicionar sistema de Backup.
+#
+# 3. Substituir Tabs e Videos por group_item, ou vice versa.
 
 
 #alterações
@@ -104,6 +127,8 @@ ft.app(main)
 #
 # ok 2. Suporte a outros tipos de mídia
 # ok - Outros conteúdos salvos por URL.
+# - Shorts
+# - Youtube Channel
 # - Podcasts.
 # - Sites e artigos.
 # - Tweets e publicações.

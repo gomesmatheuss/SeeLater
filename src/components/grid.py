@@ -1,8 +1,8 @@
+
 import flet as ft
 
-from components.video_card import Card
-from components.fab_button import FABButton
-from components.grid_pagination import GridPagination
+from components.media_collection import MediaCollection
+from components.media_card_assembler import MediaCardAssembler
 
 from services.grid_service import GridService
 from services.video_queue_service import get_video_queue
@@ -28,40 +28,34 @@ class Grid(ft.Column):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.scroll = ft.ScrollMode.HIDDEN
 
-        self.app_page.floating_action_button = FABButton(
-            self.app_page,
-            self.on_video_added
-        )
-
-        self.cards_row = ft.Row(
-            spacing=15,
-            run_spacing=15,
-            wrap=True,
-            vertical_alignment=ft.CrossAxisAlignment.START
-        )
-
-        self.pagination_controls = GridPagination(
+        self.collection = MediaCollection(
             on_page_change=self.on_page_change,
-            current_page=0,
-            total_items=0,
-            items_per_page=self.items_per_page
+            card_builder=self.create_card,
+            items_per_page=self.items_per_page,
+            empty_message="Nenhum vídeo encontrado."
         )
 
         self.controls = [
-            self.cards_row,
-            self.pagination_controls
+            self.collection
         ]
 
         self.update_cards()
 
     # ==================================
-    # ATUALIZAÇÃO DOS CARDS
+    # CRIAÇÃO DOS CARDS
     # ==================================
 
-    def on_video_added(self):
-        self.update_cards(
-            hard_refresh=True
+    def create_card(self, video):
+
+        return MediaCardAssembler.create_card(
+            item=video,
+            page=self.app_page,
+            tags=self.service.get_video_tags(video)
         )
+
+    # ==================================
+    # ATUALIZAÇÃO DOS CARDS
+    # ==================================
 
     def on_page_change(self, page):
         self.update_cards(
@@ -77,9 +71,9 @@ class Grid(ft.Column):
 
         if not change_page:
             self.search_term = search_term
-            self.pagination_controls.current_page = 0
+            self.collection.pagination.current_page = 0
 
-        current_page = self.pagination_controls.current_page
+        current_page = self.collection.pagination.current_page
 
         videos = self.service.get_page_videos(
             current_page=current_page,
@@ -88,25 +82,14 @@ class Grid(ft.Column):
             hard_refresh=hard_refresh
         )
 
-        cards = [
-            Card(
-                video,
-                self.app_page,
-                self.on_card_changed,
-                tags=self.service.get_video_tags(video)
-            )
-            for video in videos
-        ]
-
-        self.cards_row.controls = cards
-
         total_items = self.service.get_total_items(
             self.search_term
         )
 
-        self.pagination_controls.set_data(
-            current_page=current_page,
-            total_items=total_items
+        self.collection.set_items(
+            items=videos,
+            total_items=total_items,
+            current_page=current_page
         )
 
         # Solicita o carregamento dos vídeos pendentes.
@@ -152,7 +135,6 @@ class Grid(ft.Column):
             return
 
         try:
-            # Usa a referência permanente da página.
             self.app_page.run_task(
                 self.refresh_after_video_load
             )
@@ -168,20 +150,5 @@ class Grid(ft.Column):
 
         self.update_cards(
             change_page=True,
-            hard_refresh=True
-        )
-
-    # ==================================
-    # ALTERAÇÕES NOS CARDS
-    # ==================================
-
-    def on_card_changed(self, video):
-        """
-        Chamado quando um Card altera alguma informação.
-        """
-
-        self.service.mark_as_watched(video)
-
-        self.update_cards(
             hard_refresh=True
         )

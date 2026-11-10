@@ -2,10 +2,11 @@ import json
 import flet as ft
 
 from urllib.parse import urlparse, parse_qs
-
-from services.db_service import (
-    get_all_tags,
-    create_group_item
+from services.db_service import get_all_tags
+from services.import_service import (
+    save_imported_group_item,
+    save_imported_home_items,
+    get_existing_items
 )
 
 
@@ -24,14 +25,19 @@ class ImportGroupItemsDialog(ft.AlertDialog):
 
     def __init__(
         self,
-        group: dict,
+        group=None,
         existing_items=None,
         on_import_complete=None
     ):
         super().__init__()
 
         self.group = group
-        self.existing_items = existing_items or []
+        self.destination = "group" if group else "home"
+
+        self.existing_items = get_existing_items(
+            destination=self.destination,
+            group_id=str(group["_id"]) if group else None
+        )
         self.on_import_complete = on_import_complete
 
         self.existing_urls = {
@@ -88,7 +94,11 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         )
 
         self.modal = True
-        self.title = ft.Text("Importar itens para o grupo")
+        self.title = ft.Text(
+            "Importar itens para o grupo"
+            if self.destination == "group"
+            else "Importar itens"
+        )
 
         self.content = ft.Column(
             width=750,
@@ -98,7 +108,7 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                 ft.Text(
                     f'Grupo: {group.get("name", "Grupo")}',
                     weight=ft.FontWeight.BOLD
-                ),
+                ) if self.destination == "group" else ft.Container(),
 
                 ft.Row(
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -616,40 +626,67 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         imported_items = []
         errors = []
 
-        group_id = str(self.group["_id"])
+        # ==================================
+        # IMPORTAÇÃO PARA A HOME
+        # ==================================
 
-        for item in selected_items:
-
-            item_data = {
-                "media_type": item["media_type"],
-                "media_id": self.extract_media_id(
-                    item["url"],
-                    item["media_type"]
-                ),
-                "url": item["url"],
-                "title": item["title"],
-                "thumbnail_path": None,
-                "text": None,
-                "priority": "low",
-                "tags": list(item.get("tags", [])),
-                "load_status": "json_imported"
-            }
+        if self.destination == "home":
 
             try:
-                create_group_item(
-                    group_id=group_id,
-                    item_data=item_data
+                imported_count = save_imported_home_items(
+                    selected_items
                 )
 
-                imported_items.append(item)
+                imported_items = selected_items.copy()
 
             except Exception as error:
-                errors.append(
-                    f'{item["title"]}: {error}'
-                )
+                imported_count = 0
+                errors.append(str(error))
 
-        # Atualiza a lista local para impedir que itens já gravados
-        # sejam enviados novamente em uma nova tentativa.
+        # ==================================
+        # IMPORTAÇÃO PARA UM GRUPO
+        # ==================================
+
+        else:
+
+            group_id = str(self.group["_id"])
+
+            for item in selected_items:
+
+                item_data = {
+                    "media_type": item["media_type"],
+                    "media_id": self.extract_media_id(
+                        item["url"],
+                        item["media_type"]
+                    ),
+                    "url": item["url"],
+                    "title": item["title"],
+                    "thumbnail_path": None,
+                    "text": None,
+                    "priority": "low",
+                    "tags": list(item.get("tags", [])),
+                    "load_status": "json_imported"
+                }
+
+                try:
+                    save_imported_group_item(
+                        group_id=group_id,
+                        item_data=item_data
+                    )
+
+                    imported_items.append(item)
+
+                except Exception as error:
+                    errors.append(
+                        f'{item["title"]}: {error}'
+                    )
+
+            imported_count = len(imported_items)
+
+        # ==================================
+        # ATUALIZAÇÃO DA PRÉ-VISUALIZAÇÃO
+        # ==================================
+
         for item in imported_items:
 
             item["selected"] = False
@@ -661,17 +698,24 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         if imported_items and self.on_import_complete:
             self.on_import_complete()
 
+        # ==================================
+        # RESULTADO
+        # ==================================
+
         if errors:
 
             self.update_preview()
 
             message = (
-                f"{len(imported_items)} importados; "
+                f"{imported_count} importados; "
                 f"{len(errors)} não puderam ser importados."
             )
 
             if imported_items:
-                message += " Os itens restantes continuam disponíveis para nova tentativa."
+                message += (
+                    " Os itens restantes continuam disponíveis "
+                    "para nova tentativa."
+                )
 
             self.show_message(message)
 
@@ -684,7 +728,7 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         self.page.close(self)
 
         self.show_message(
-            f"{len(imported_items)} itens importados com sucesso!"
+            f"{imported_count} itens importados com sucesso!"
         )
 
     def show_message(self, message):

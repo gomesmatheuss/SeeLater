@@ -1,12 +1,12 @@
 import flet as ft
 
-from components.left_navigation_menu import LeftNavigationMenu
+from components.navigation.left_navigation_menu import LeftNavigationMenu
 
 from components.pages.home_page import HomePage
 from components.pages.tags_page import TagsPage
 from components.pages.groups_page import GroupsPage
 from components.pages.group_items_page import GroupItemsPage
-from components.pages.queue_page import QueuePage
+from components.pages.downloads_page import DownloadsPage
 
 
 class MainPage(ft.Row):
@@ -18,7 +18,7 @@ class MainPage(ft.Row):
 
         self.home_page = HomePage(page)
         self.tags_page = TagsPage(page)
-        self.queue_page = QueuePage(page)
+        self.downloads_page = DownloadsPage(page)
 
         self.groups_page = GroupsPage(
             page,
@@ -76,7 +76,7 @@ class MainPage(ft.Row):
                 bottom=10
             )
 
-            self.content_area.content = self.queue_page
+            self.content_area.content = self.downloads_page
             self.page.floating_action_button = None
 
         self.left_nav.set_selected(page_key)

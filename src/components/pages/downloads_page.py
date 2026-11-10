@@ -8,7 +8,7 @@ from services.db_service import (
 )
 
 
-class QueuePage(ft.Column):
+class DownloadsPage(ft.Column):
 
     def __init__(self, page):
 

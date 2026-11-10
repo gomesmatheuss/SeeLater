@@ -1,7 +1,7 @@
 import flet as ft
 
 
-class GridPagination(ft.Row):
+class Pagination(ft.Row):
 
     def __init__(
         self,
