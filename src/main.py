@@ -65,6 +65,10 @@ ft.app(main)
 # 5. Remover itens.
 #
 # 6. Marcar como visto.
+#
+# 7. Mover para o grupo X.
+# 
+# 8. Mover para a home.
 
 
 # ==========================================
@@ -97,6 +101,9 @@ ft.app(main)
 # 3. Adicionar um botão de baixar/carregar infos em cada Card, para não iniciar um lista gigante automaticamente.
 # - Poder selecinar os items de uma pagina (home e grupo), e ao selecionar tem um botão de opções com
 #   a opção de baixar todos itens selecionados.
+#
+# 4. Atualizar o titulo do itens concluidos da fila. Atualmente se colocar um link manualmente, e depois baixar ele
+#    fica como titulo o link.
 
 
 # ==========================================

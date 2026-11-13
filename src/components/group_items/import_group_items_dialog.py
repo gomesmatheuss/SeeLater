@@ -1,3 +1,4 @@
+
 import json
 import flet as ft
 
@@ -62,6 +63,13 @@ class ImportGroupItemsDialog(ft.AlertDialog):
             color=ft.Colors.GREY_400
         )
 
+        self.manual_url_input = ft.TextField(
+            label="Adicionar URL",
+            hint_text="Cole uma URL aqui...",
+            expand=True,
+            on_submit=self.add_manual_url
+        )
+
         self.items_count = ft.Text(
             "Nenhum arquivo carregado.",
             size=13,
@@ -111,6 +119,19 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                 ) if self.destination == "group" else ft.Container(),
 
                 ft.Row(
+                    spacing=10,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    controls=[
+                        self.manual_url_input,
+                        ft.OutlinedButton(
+                            text="Adicionar",
+                            icon=ft.Icons.ADD,
+                            on_click=self.add_manual_url
+                        )
+                    ]
+                ),
+
+                ft.Row(
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
@@ -127,10 +148,20 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                             ]
                         ),
 
-                        ft.OutlinedButton(
-                            text="Editar Tags",
-                            icon=ft.Icons.LABEL,
-                            on_click=self.open_bulk_tags_editor
+                        ft.Row(
+                            spacing=8,
+                            controls=[
+                                ft.OutlinedButton(
+                                    text="Remover selecionados",
+                                    icon=ft.Icons.DELETE_OUTLINE,
+                                    on_click=self.remove_selected_items
+                                ),
+                                ft.OutlinedButton(
+                                    text="Editar Tags",
+                                    icon=ft.Icons.LABEL,
+                                    on_click=self.open_bulk_tags_editor
+                                )
+                            ]
                         )
                     ]
                 ),
@@ -179,6 +210,45 @@ class ImportGroupItemsDialog(ft.AlertDialog):
             self.page.overlay.remove(self.file_picker)
 
     # ---------------------------------------------------------
+    # ADIÇÃO MANUAL DE URL
+    # ---------------------------------------------------------
+
+    def add_manual_url(self, e=None):
+
+        url = (self.manual_url_input.value or "").strip()
+
+        if not url:
+            self.show_message("Informe uma URL para adicionar.")
+            return
+
+        parsed = urlparse(url)
+
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            self.show_message("Informe uma URL válida, começando com http:// ou https://.")
+            return
+
+        duplicate_reason = None
+
+        if url in self.existing_urls:
+            duplicate_reason = "Já existe no destino"
+
+        elif any(item["url"] == url for item in self.items):
+            duplicate_reason = "Repetido na pré-visualização"
+
+        self.items.append({
+            "url": url,
+            "title": url,
+            "selected": duplicate_reason is None,
+            "duplicate": duplicate_reason is not None,
+            "duplicate_reason": duplicate_reason,
+            "media_type": self.detect_media_type(url),
+            "tags": []
+        })
+
+        self.manual_url_input.value = ""
+        self.update_preview()
+
+    # ---------------------------------------------------------
     # ARQUIVO JSON
     # ---------------------------------------------------------
 
@@ -211,10 +281,9 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                     "O arquivo precisa conter uma lista de itens."
                 )
 
-            self.items = []
-            self.skipped_count = 0
-
-            seen_urls = set()
+            seen_urls = {
+                item["url"] for item in self.items
+            }
 
             for item in data:
 
@@ -241,10 +310,10 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                 duplicate_reason = None
 
                 if url in self.existing_urls:
-                    duplicate_reason = "Já existe neste grupo"
+                    duplicate_reason = "Já existe no destino"
 
                 elif url in seen_urls:
-                    duplicate_reason = "Repetido no arquivo"
+                    duplicate_reason = "Repetido na pré-visualização"
 
                 seen_urls.add(url)
 
@@ -262,16 +331,10 @@ class ImportGroupItemsDialog(ft.AlertDialog):
 
         except (OSError, json.JSONDecodeError, ValueError) as error:
 
-            self.items = []
-            self.preview_list.controls = []
-
             self.items_count.value = f"Erro ao carregar arquivo: {error}"
             self.items_count.color = ft.Colors.RED
 
-            self.select_all.value = False
-            self.selected_count.value = "0 selecionados"
-            self.import_button.disabled = True
-
+            self.update_preview()
             self.page.update()
 
     # ---------------------------------------------------------
@@ -816,7 +879,14 @@ class ImportGroupItemsDialog(ft.AlertDialog):
                             ]
                         ),
 
-                        self.create_media_type_dropdown(item, index)
+                        self.create_media_type_dropdown(item, index),
+
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE_OUTLINE,
+                            icon_color=ft.Colors.RED_400,
+                            tooltip="Remover da pré-visualização",
+                            on_click=lambda e, i=index: self.remove_item(i, e)
+                        )
                     ]
                 )
             )
@@ -824,6 +894,35 @@ class ImportGroupItemsDialog(ft.AlertDialog):
         ]
 
         self.update_selection()
+
+    def remove_item(self, index, e=None):
+
+        if index < 0 or index >= len(self.items):
+            return
+
+        self.items.pop(index)
+        self.update_preview()
+
+    def remove_selected_items(self, e=None):
+
+        selected_count = sum(
+            1 for item in self.items
+            if item["selected"] and not item["duplicate"]
+        )
+
+        if selected_count == 0:
+            self.show_message("Selecione pelo menos um item para remover.")
+            return
+
+        self.items = [
+            item for item in self.items
+            if not (item["selected"] and not item["duplicate"])
+        ]
+
+        self.update_preview()
+        self.show_message(
+            f"{selected_count} itens removidos da pré-visualização."
+        )
 
     def on_item_selection(self, index, e):
 
