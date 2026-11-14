@@ -2,13 +2,47 @@ import hashlib
 import re
 import datetime
 from typing import Union
+from urllib.parse import urlparse, parse_qs
 
 def hash_video_url(url):
     return hashlib.md5(url.encode()).hexdigest()
 
 def get_yt_url_code(url):
-    url_code = re.findall(r'\?v=(.*?)$', url)
-    return url_code[0] if url_code else None
+    if not isinstance(url, str) or not url.strip():
+        return None
+
+    url = url.strip()
+
+    # Permite URLs sem protocolo explícito.
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    try:
+        parsed_url = urlparse(url)
+        hostname = (parsed_url.hostname or "").lower()
+
+        # Formato: youtube.com/watch?v=ID
+        if hostname in ("youtube.com", "www.youtube.com", "m.youtube.com"):
+            if parsed_url.path != "/watch":
+                return None
+
+            video_id = parse_qs(parsed_url.query).get("v", [None])[0]
+
+        # Formato: youtu.be/ID
+        elif hostname == "youtu.be":
+            video_id = parsed_url.path.strip("/").split("/")[0]
+
+        else:
+            return None
+
+        # IDs de vídeos do YouTube possuem 11 caracteres.
+        if video_id and re.fullmatch(r"[a-zA-Z0-9_-]{11}", video_id):
+            return video_id
+
+    except (ValueError, AttributeError):
+        pass
+
+    return None
 
 def format_timestamp(timestamp: Union[float, datetime.datetime]) -> str:
 

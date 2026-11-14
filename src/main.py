@@ -42,13 +42,17 @@ ft.app(main)
 #
 # 6. Corrigir a barra de navegação, tipo: 1 10 20 ... 23 24 25 ... 30 40 43
 #
-# 7. Mostar a quantidade total de itens na parte superior proximo à barra de 
+# 7. Apagar thumb(e dados) de itens excluidos no banco
+# 
+# 8. Colocar o link do canal na foto do Card
+# 
+# ok 9. Alterar o tamanho da thumb baixada (720p)
 #
-# 8. Apagar thumb(e dados) de itens excluidos no banco
-# 
-# 9. Colocar o link do canal na foto do Card
-# 
-# ok 10. Alterar o tamanho da thumb baixada (720p)
+# 10. Menu de pesquisa, reestilizar, deixar mais compacto.
+#       - Deixar deversos itens, e um botão de pesquisar, que ao clicado se expande e oculta os demais.
+#       - Quantidade de Itens total.
+#       - Quantidade por pagina.
+#       - Botão de importar itens.
 
 
 # ==========================================
@@ -82,7 +86,9 @@ ft.app(main)
 # para o grupo2, menos os videos sobre programação. Teria um botão de opções avançadas, com a
 # opção "remover conteudo já presente nos grupos: selecionar grupos".
 #
-# 3. Permitir criação de novas Tags na tela de Editar Tags
+# 3. Permitir criação de novas Tags na tela de Editar Tags.
+#
+# 4. Visualizar itens ignorados na importação.
 
 
 # ==========================================

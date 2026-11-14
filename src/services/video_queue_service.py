@@ -23,21 +23,23 @@ class VideoQueueService:
             thread_name_prefix="VideoLoader"
         )
 
+        self.default_processor = processor is None
         self.processor = processor or self.process_video
 
         self.lock = RLock()
-
         self.tasks = {}
-
         self.paused = False
 
     # ==================================
     # PROCESSAMENTO
     # ==================================
 
-    def process_video(self, item):
+    def process_video(self, item, force_refresh=False):
 
-        video = get_video_info(item)
+        video = get_video_info(
+            item,
+            force_refresh=force_refresh
+        )
 
         if not video:
             raise RuntimeError(
@@ -53,13 +55,46 @@ class VideoQueueService:
 
         return video
 
-    def _run_processor(self, video_id, item):
+    def _run_processor(
+        self,
+        video_id,
+        item,
+        force_refresh=False,
+        metadata_only=False
+    ):
+
+        # Solicitações exclusivas do importador.
+        # Não alteram o status nem salvam o vídeo no banco.
+        if metadata_only:
+
+            video = get_video_info(
+                item,
+                force_refresh=True
+            )
+
+            if not video:
+                raise RuntimeError(
+                    "Não foi possível obter as informações do vídeo."
+                )
+
+            if video.load_status != LoadStatus.LOAD_SUCCESS:
+                raise RuntimeError(
+                    "O carregamento do vídeo não foi concluído."
+                )
+
+            return video
 
         update_video_load_status(
             video_id,
             LoadStatus.LOADING,
             item["url"]
         )
+
+        if self.default_processor:
+            return self.process_video(
+                item,
+                force_refresh=force_refresh
+            )
 
         return self.processor(item)
 
@@ -71,16 +106,20 @@ class VideoQueueService:
 
         started_tasks = []
 
-        if self.paused:
-            return started_tasks
-
         running = sum(
             1
             for task in self.tasks.values()
             if task.get("status") == "running"
         )
 
-        for video_id, task in self.tasks.items():
+        # Prioritárias primeiro.
+        # A ordem original é preservada dentro de cada prioridade.
+        ordered_tasks = sorted(
+            self.tasks.items(),
+            key=lambda entry: not entry[1].get("priority", False)
+        )
+
+        for task_key, task in ordered_tasks:
 
             if running >= self.max_workers:
                 break
@@ -88,17 +127,25 @@ class VideoQueueService:
             if task.get("status") != "waiting":
                 continue
 
+            is_priority = task.get("priority", False)
+
+            # Com a fila pausada, somente prioritárias iniciam.
+            if self.paused and not is_priority:
+                continue
+
             future = self.executor.submit(
                 self._run_processor,
-                video_id,
-                task["item"]
+                task["video_id"],
+                task["item"],
+                task.get("force_refresh", False),
+                task.get("metadata_only", False)
             )
 
             task["future"] = future
             task["status"] = "running"
 
             started_tasks.append(
-                (video_id, future)
+                (task_key, future)
             )
 
             running += 1
@@ -107,18 +154,24 @@ class VideoQueueService:
 
     def _attach_callbacks(self, started_tasks):
 
-        for video_id, future in started_tasks:
+        for task_key, future in started_tasks:
 
             future.add_done_callback(
-                lambda result, vid=video_id:
-                self.on_task_complete(vid, result)
+                lambda result, key=task_key:
+                self.on_task_complete(key, result)
             )
 
     # ==================================
     # ADICIONAR À FILA
     # ==================================
 
-    def enqueue(self, item, on_complete=None):
+    def _enqueue(
+        self,
+        item,
+        on_complete=None,
+        priority=False,
+        metadata_only=False
+    ):
 
         if not isinstance(item, dict):
             raise TypeError(
@@ -139,6 +192,12 @@ class VideoQueueService:
                 "Não foi possível identificar o ID do vídeo."
             )
 
+        # Cada modalidade possui sua própria identificação.
+        task_key = (
+            "priority" if priority else "normal",
+            video_id
+        )
+
         task_data = {
             "url": url,
             "title": item.get("title") or url
@@ -146,32 +205,96 @@ class VideoQueueService:
 
         with self.lock:
 
-            # Evita tarefas duplicadas.
-            if video_id in self.tasks:
+            # Evita duplicidade dentro da mesma modalidade.
+            if task_key in self.tasks:
+
+                existing_task = self.tasks[task_key]
 
                 if (
                     on_complete
-                    and on_complete not in self.tasks[video_id]["callbacks"]
+                    and on_complete not in existing_task["callbacks"]
                 ):
-                    self.tasks[video_id]["callbacks"].append(
+                    existing_task["callbacks"].append(
                         on_complete
                     )
 
+                started_tasks = self._dispatch_pending_locked()
+                result = False
+
+            else:
+
+                self.tasks[task_key] = {
+                    "video_id": video_id,
+                    "item": task_data,
+                    "url": url,
+                    "status": "waiting",
+                    "future": None,
+                    "callbacks": (
+                        [on_complete]
+                        if on_complete
+                        else []
+                    ),
+                    "priority": priority,
+                    "force_refresh": priority,
+                    "metadata_only": metadata_only
+                }
+
+                started_tasks = self._dispatch_pending_locked()
+                result = True
+
+        self._attach_callbacks(started_tasks)
+
+        return result
+
+    def enqueue(self, item, on_complete=None):
+
+        return self._enqueue(
+            item,
+            on_complete=on_complete
+        )
+
+    def enqueue_priority(self, item, on_complete=None):
+
+        return self._enqueue(
+            item,
+            on_complete=on_complete,
+            priority=True,
+            metadata_only=True
+        )
+
+    def remove_priority_callback(self, video_id, callback):
+        """
+        Remove somente o callback de uma solicitação prioritária.
+
+        Se a tarefa ainda estiver aguardando e não possuir
+        outros callbacks, ela será removida da fila.
+
+        Tarefas em execução não são interrompidas.
+        """
+
+        task_key = ("priority", video_id)
+
+        with self.lock:
+
+            task = self.tasks.get(task_key)
+
+            if not task:
                 return False
 
-            self.tasks[video_id] = {
-                "item": task_data,
-                "url": url,
-                "status": "waiting",
-                "future": None,
-                "callbacks": (
-                    [on_complete]
-                    if on_complete
-                    else []
-                )
-            }
+            callbacks = task["callbacks"]
 
-            started_tasks = self._dispatch_pending_locked()
+            if callback not in callbacks:
+                return False
+
+            callbacks.remove(callback)
+
+            started_tasks = []
+
+            if task["status"] == "waiting" and not callbacks:
+
+                self.tasks.pop(task_key, None)
+
+                started_tasks = self._dispatch_pending_locked()
 
         self._attach_callbacks(started_tasks)
 
@@ -205,7 +328,7 @@ class VideoQueueService:
     # FINALIZAÇÃO DA TAREFA
     # ==================================
 
-    def on_task_complete(self, video_id, future):
+    def on_task_complete(self, task_key, future):
 
         video = None
         error = None
@@ -218,15 +341,16 @@ class VideoQueueService:
             error = e
 
             print(
-                f"Erro ao carregar vídeo {video_id}:",
+                f"Erro ao carregar vídeo {task_key[1]}:",
                 e
             )
 
-        # Recupera os dados da tarefa antes de removê-la.
+        # Recupera os dados antes de remover a tarefa.
         with self.lock:
 
-            task = self.tasks.get(video_id)
+            task = self.tasks.get(task_key)
 
+            video_id = task["video_id"] if task else task_key[1]
             task_url = task["url"] if task else None
 
             task_title = (
@@ -235,55 +359,62 @@ class VideoQueueService:
                 else task_url
             )
 
-        # Atualiza o status no banco.
-        try:
-
-            update_video_load_status(
-                video_id,
-                (
-                    LoadStatus.LOAD_SUCCESS
-                    if error is None
-                    else LoadStatus.LOAD_FAILED
-                ),
-                video.url if video else task_url
+            metadata_only = (
+                task.get("metadata_only", False)
+                if task
+                else False
             )
 
-        except Exception as e:
+        # Solicitações exclusivas do importador não alteram
+        # o status nem o histórico da fila normal.
+        if not metadata_only:
 
-            print(
-                f"Erro ao atualizar status do vídeo {video_id}:",
-                e
-            )
+            try:
 
-            if error is None:
-                error = e
-
-        # Registra o resultado no histórico permanente.
-        try:
-
-            if task:
-
-                save_queue_history(
-                    video_id=video_id,
-                    title=task_title,
-                    url=task_url,
-                    success=error is None,
-                    error=error
+                update_video_load_status(
+                    video_id,
+                    (
+                        LoadStatus.LOAD_SUCCESS
+                        if error is None
+                        else LoadStatus.LOAD_FAILED
+                    ),
+                    video.url if video else task_url
                 )
 
-        except Exception as e:
+            except Exception as e:
 
-            # Uma falha no histórico não deve interromper a fila.
-            print(
-                f"Erro ao salvar histórico do vídeo {video_id}:",
-                e
-            )
+                print(
+                    f"Erro ao atualizar status do vídeo {video_id}:",
+                    e
+                )
 
-        # Remove a tarefa concluída e libera espaço na fila.
+                if error is None:
+                    error = e
+
+            try:
+
+                if task:
+
+                    save_queue_history(
+                        video_id=video_id,
+                        title=task_title,
+                        url=task_url,
+                        success=error is None,
+                        error=error
+                    )
+
+            except Exception as e:
+
+                print(
+                    f"Erro ao salvar histórico do vídeo {video_id}:",
+                    e
+                )
+
+        # Remove a tarefa e libera espaço na fila.
         with self.lock:
 
             task = self.tasks.pop(
-                video_id,
+                task_key,
                 None
             )
 
@@ -293,8 +424,6 @@ class VideoQueueService:
                 else []
             )
 
-            # Inicia o próximo item somente se
-            # a fila não estiver pausada.
             started_tasks = self._dispatch_pending_locked()
 
         self._attach_callbacks(started_tasks)
@@ -303,6 +432,7 @@ class VideoQueueService:
         for callback in callbacks:
 
             try:
+
                 callback(
                     video_id,
                     video,
@@ -323,7 +453,11 @@ class VideoQueueService:
     def is_processing(self, video_id):
 
         with self.lock:
-            return video_id in self.tasks
+
+            return (
+                ("normal", video_id) in self.tasks
+                or ("priority", video_id) in self.tasks
+            )
 
     def get_tasks(self):
 
@@ -331,10 +465,10 @@ class VideoQueueService:
 
             tasks = []
 
-            for video_id, task in self.tasks.items():
+            for task in self.tasks.values():
 
                 tasks.append({
-                    "video_id": video_id,
+                    "video_id": task["video_id"],
                     "title": task["item"]["title"],
                     "url": task["url"],
                     "status": task["status"]

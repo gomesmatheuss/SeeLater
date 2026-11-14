@@ -292,7 +292,7 @@ def ensure_video_thumbnail(video: Video):
 
     return video
 
-def get_video_info(tab: dict):
+def get_video_info(tab: dict, force_refresh=False):
     cache_key = get_yt_url_code(
         tab.get("url", "")
     )
@@ -300,15 +300,19 @@ def get_video_info(tab: dict):
     if not cache_key or "youtube" not in tab.get("url", ""):
         return get_not_loaded_video_info(tab)
 
-    if (
-        existing := get_video_by_id(cache_key)
-    ) and existing.get("load_status") == LoadStatus.LOAD_SUCCESS:
+    # Na fila normal, reutiliza os dados já salvos.
+    # No importador, force_refresh=True ignora o cache do MongoDB.
+    if not force_refresh:
 
-        video = Video.from_dict(existing)
+        if (
+            existing := get_video_by_id(cache_key)
+        ) and existing.get("load_status") == LoadStatus.LOAD_SUCCESS:
 
-        video = ensure_video_thumbnail(video)
+            video = Video.from_dict(existing)
 
-        return video
+            video = ensure_video_thumbnail(video)
+
+            return video
 
     try:
         print(
@@ -337,7 +341,7 @@ def get_video_info(tab: dict):
             f"{cache_key}.jpg"
         )
 
-        # Baixa a melhor resolução disponível.
+        # Reutiliza a thumbnail local, caso já exista.
         if not os.path.exists(thumb_path):
             download_video_thumbnail(
                 data.get("thumbnail"),
@@ -377,7 +381,6 @@ def get_video_info(tab: dict):
         )
 
         return None
-
 
 def get_not_loaded_video_info(tab: dict):
     cache_key = get_yt_url_code(

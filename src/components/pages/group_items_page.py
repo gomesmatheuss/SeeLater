@@ -8,7 +8,7 @@ from components.search_bar import SearchBar
 from services.group_service import GroupService
 from services.video_queue_service import get_video_queue
 
-from components.group_items.import_group_items_dialog import ImportGroupItemsDialog
+from components.importer.import_dialog import ImportItemsDialog
 
 
 class GroupItemsPage(ft.Column):
@@ -153,15 +153,21 @@ class GroupItemsPage(ft.Column):
     # ==================================
 
     def enqueue_pending_items(self, items):
-
         pending_items = self.service.get_pending_items(items)
 
         for item in pending_items:
-
-            self.video_queue.enqueue(
-                item,
-                on_complete=self.on_video_load_complete
-            )
+            try:
+                self.video_queue.enqueue(
+                    item,
+                    on_complete=self.on_video_load_complete
+                )
+            except ValueError as e:
+                print(
+                    f"Item ignorado na fila: "
+                    f"{item.get('title') or 'Sem título'} | "
+                    f"URL: {item.get('url')} | "
+                    f"Motivo: {e}"
+                )
 
     def on_video_load_complete(self, video_id, video, error):
 
@@ -237,7 +243,7 @@ class GroupItemsPage(ft.Column):
             group_id=str(self.group["_id"])
         )
 
-        dialog = ImportGroupItemsDialog(
+        dialog = ImportItemsDialog(
             group=self.group,
             existing_items=existing_items,
             on_import_complete=lambda: self.load_items(hard_refresh=True)

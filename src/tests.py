@@ -347,4 +347,19 @@ def run_tests():
 
 
 if __name__ == "__main__":
-    run_tests()
+    # run_tests()
+    from services.utils import get_yt_url_code
+
+    urls = [
+        "https://www.youtube.com/watch?v=abcdefghijk",
+        "https://youtube.com/watch?v=abcdefghijk",
+        "https://youtu.be/abcdefghijk",
+        "https://youtu.be/abcdefghijk?si=123456",
+        "https://www.youtube.com/shorts/abcdefghijk",
+        "https://www.youtube.com/@canal",
+        "https://www.youtube.com/playlist?list=abcdefghijk",
+        "https://example.com/video"
+    ]
+
+    for url in urls:
+        print(url, "->", get_yt_url_code(url))

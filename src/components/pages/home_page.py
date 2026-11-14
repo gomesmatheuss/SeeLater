@@ -4,7 +4,7 @@ import flet as ft
 from components.grid import Grid
 from components.search_bar import SearchBar
 
-from components.group_items.import_group_items_dialog import ImportGroupItemsDialog
+from components.importer.import_dialog import ImportItemsDialog
 
 
 class HomePage(ft.Column):
@@ -47,7 +47,7 @@ class HomePage(ft.Column):
 
     def open_import_dialog(self, e):
 
-        dialog = ImportGroupItemsDialog(
+        dialog = ImportItemsDialog(
             group=None,
             existing_items=[],
             on_import_complete=lambda: self.grid.update_cards(
