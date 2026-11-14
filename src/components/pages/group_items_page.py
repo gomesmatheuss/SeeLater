@@ -30,8 +30,28 @@ class GroupItemsPage(ft.Column):
 
         self.expand = True
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-        self.scroll = ft.ScrollMode.HIDDEN
         self.spacing = 5
+
+        # ==================================
+        # HEADER
+        # ==================================
+
+        description = group.get("description", "")
+
+        self.description_text = ft.Text(
+            description,
+            size=12,
+            color=ft.Colors.GREY_400,
+            visible=bool(description)
+        )
+
+        self.description_button = ft.IconButton(
+            icon=ft.Icons.VISIBILITY_OFF,
+            icon_size=18,
+            tooltip="Ocultar descrição",
+            visible=bool(description),
+            on_click=self.toggle_description
+        )
 
         self.header = ft.Row(
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -45,30 +65,42 @@ class GroupItemsPage(ft.Column):
                     spacing=2,
                     expand=True,
                     controls=[
-                        ft.Text(
-                            group.get("name", "Grupo"),
-                            size=20,
-                            weight=ft.FontWeight.BOLD
+                        ft.Row(
+                            spacing=5,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            controls=[
+                                ft.Text(
+                                    group.get("name", "Grupo"),
+                                    size=20,
+                                    weight=ft.FontWeight.BOLD
+                                ),
+                                ft.Container(expand=True),
+                                self.description_button
+                            ]
                         ),
-                        ft.Text(
-                            group.get("description", ""),
-                            size=12,
-                            color=ft.Colors.GREY_400,
-                            visible=bool(group.get("description"))
-                        )
+                        self.description_text
                     ]
-                ),
-                ft.ElevatedButton(
-                    "Importar itens",
-                    icon=ft.Icons.UPLOAD_FILE,
-                    on_click=self.open_import_dialog
                 )
             ]
         )
 
+        # ==================================
+        # BARRA DE PESQUISA
+        # ==================================
+
         self.search_bar = SearchBar(
-            on_search=self.on_search
+            on_search=self.on_search,
+            on_add=self.open_import_dialog
         )
+
+        self.search_container = ft.Container(
+            content=self.search_bar,
+            padding=ft.padding.symmetric(horizontal=15)
+        )
+
+        # ==================================
+        # COLEÇÃO
+        # ==================================
 
         self.collection = MediaCollection(
             on_page_change=self.on_page_change,
@@ -79,7 +111,7 @@ class GroupItemsPage(ft.Column):
 
         self.controls = [
             self.header,
-            self.search_bar,
+            self.search_container,
             self.collection
         ]
 
@@ -92,6 +124,18 @@ class GroupItemsPage(ft.Column):
     def go_back(self, e):
         if self.on_back:
             self.on_back()
+
+    def toggle_description(self, e):
+        self.description_text.visible = not self.description_text.visible
+
+        if self.description_text.visible:
+            self.description_button.icon = ft.Icons.VISIBILITY_OFF
+            self.description_button.tooltip = "Ocultar descrição"
+        else:
+            self.description_button.icon = ft.Icons.VISIBILITY
+            self.description_button.tooltip = "Mostrar descrição"
+
+        self.page.update()
 
     # ==================================
     # CARDS
@@ -153,6 +197,7 @@ class GroupItemsPage(ft.Column):
     # ==================================
 
     def enqueue_pending_items(self, items):
+
         pending_items = self.service.get_pending_items(items)
 
         for item in pending_items:
@@ -174,7 +219,6 @@ class GroupItemsPage(ft.Column):
         if error:
             return
 
-        # Não atualiza uma tela que não está mais montada.
         if self.page is None:
             return
 
@@ -188,7 +232,6 @@ class GroupItemsPage(ft.Column):
 
     async def refresh_after_video_load(self):
 
-        # A tela pode ter sido desmontada após o agendamento.
         if self.page is None:
             return
 
@@ -223,10 +266,25 @@ class GroupItemsPage(ft.Column):
 
         page_items = filtered_items[start:end]
 
+        # Atualiza a coleção.
         self.collection.set_items(
             items=page_items,
             total_items=len(filtered_items),
             current_page=current_page
+        )
+
+        # Atualiza o contador da barra de pesquisa.
+        if page_items:
+            count_start = start + 1
+            count_end = start + len(page_items)
+        else:
+            count_start = 0
+            count_end = 0
+
+        self.search_bar.set_count(
+            count_start,
+            count_end,
+            len(filtered_items)
         )
 
         self.enqueue_pending_items(page_items)

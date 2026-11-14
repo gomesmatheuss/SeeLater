@@ -62,7 +62,7 @@ ft.app(main)
 #
 # 2. Colocar icone e qtd de itens na capa.
 #
-# 3. Adição de links individuais.
+# ok 3. Adição de links individuais.
 #
 # 4. Reorganizar a ordem do itens.
 #
@@ -171,20 +171,4 @@ ft.app(main)
 # ==========================================
 # Proximos passos
 # ==========================================
-# - Home.
-#   - Botão "importar itens".
-#       - Mover para mesma linha do search.
-#       - Tirar o texto, deixar um botão pequeno.
-#   - Colocar a quantidade de itens.
-#       - Minimalista ex: 0 - 50 | 2980.
-# 
-# - Grupos.
-#   - Botão "Adicionar grupo" em Grupos.
-#       - Mover para a esquerda.
-#   - Mover o "Atualizado há" para mesma linha da quantidade de itens.
-#
-# - Grupo (dentro de grupos).
-#   - Mover botão "Importar itens" para a mesma linha do search.
-#   - Reestilizar o botão "Importar itens", deixa-lo pequeno.
-#   - Na mesma linha do título do grupo, colocar um botão para ocultar a descrição.
-#   - Fixar esse menu.
+# - Remover o grid.py.

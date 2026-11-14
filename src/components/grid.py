@@ -10,11 +10,12 @@ from services.video_queue_service import get_video_queue
 
 class Grid(ft.Column):
 
-    def __init__(self, page: ft.Page):
+    def __init__(self, page: ft.Page, on_count_change=None):
         super().__init__()
 
         # Referência permanente à página principal.
         self.app_page = page
+        self.on_count_change = on_count_change
 
         self.search_term = ""
         self.items_per_page = 54
@@ -85,6 +86,21 @@ class Grid(ft.Column):
         total_items = self.service.get_total_items(
             self.search_term
         )
+
+        # Atualiza o intervalo exibido na barra de pesquisa.
+        if total_items > 0 and videos:
+            start = current_page * self.items_per_page + 1
+            end = start + len(videos) - 1
+        else:
+            start = 0
+            end = 0
+
+        if self.on_count_change:
+            self.on_count_change(
+                start,
+                end,
+                total_items
+            )
 
         self.collection.set_items(
             items=videos,

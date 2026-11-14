@@ -33,15 +33,28 @@ class GroupsPage(ft.Column):
         )
 
         self.controls = [
-            ft.Row(
-                alignment=ft.MainAxisAlignment.END,
-                controls=[
-                    ft.ElevatedButton(
-                        "Adicionar grupo",
-                        icon=ft.Icons.ADD,
-                        on_click=self.open_add_dialog
-                    )
-                ]
+            ft.Container(
+                padding=ft.padding.symmetric(horizontal=15),
+                content=ft.Row(
+                    alignment=ft.MainAxisAlignment.START,
+                    controls=[
+                        ft.ElevatedButton(
+                            "Criar Grupo",
+                            icon=ft.Icons.ADD,
+                            icon_color=ft.Colors.WHITE,
+                            color=ft.Colors.WHITE,
+                            bgcolor=ft.Colors.GREEN_700,
+                            on_click=self.open_add_dialog,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=20),
+                                padding=ft.padding.symmetric(
+                                    horizontal=15,
+                                    vertical=10
+                                )
+                            )
+                        )
+                    ]
+                )
             ),
             self.groups_row
         ]

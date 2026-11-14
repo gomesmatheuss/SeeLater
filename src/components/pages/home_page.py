@@ -14,31 +14,24 @@ class HomePage(ft.Column):
 
         self.page = page
 
-        self.grid = Grid(page)
-
         self.search_bar = SearchBar(
-            on_search=self.on_search
+            on_search=self.on_search,
+            on_add=self.open_import_dialog
         )
 
-        self.import_button = ft.ElevatedButton(
-            "Importar itens",
-            icon=ft.Icons.UPLOAD_FILE,
-            on_click=self.open_import_dialog
-        )
-
-        self.header = ft.Row(
-            alignment=ft.MainAxisAlignment.END,
-            controls=[
-                self.import_button
-            ]
+        self.grid = Grid(
+            page,
+            on_count_change=self.search_bar.set_count
         )
 
         self.expand = True
         self.spacing = 5
 
         self.controls = [
-            self.header,
-            self.search_bar,
+            ft.Container(
+                content=self.search_bar,
+                padding=ft.padding.symmetric(horizontal=15)
+            ),
             self.grid
         ]
 

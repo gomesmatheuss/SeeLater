@@ -173,7 +173,11 @@ class GroupCard(ft.Column):
                         ),
 
                         ft.Text(
-                            value=f"{self.item_count} itens",
+                            value=(
+                                f"{self.item_count} itens - Atualizado {updated_text}"
+                                if updated_text
+                                else f"{self.item_count} itens"
+                            ),
                             size=11,
                             color=ft.Colors.GREY_400
                         ),
@@ -185,12 +189,6 @@ class GroupCard(ft.Column):
                             max_lines=2,
                             overflow=ft.TextOverflow.ELLIPSIS,
                             visible=bool(description)
-                        ),
-
-                        ft.Text(
-                            value=f"Atualizado {updated_text}" if updated_text else "",
-                            size=10,
-                            color=ft.Colors.GREY_500
                         )
                     ]
                 ),
