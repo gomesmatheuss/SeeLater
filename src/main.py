@@ -26,30 +26,30 @@ ft.app(main)
 # ==========================================
 # Melhorias na Home
 # ==========================================
-# 1. Adicionar da badge de verificado (nao importante)
+# 1. Adicionar da badge de verificado (nao importante).
 #
-# 2. Criar template para tweets
-# - baixar imagem e texto
-# - baixar comentarios em txt
+# 2. Criar template para tweets.
+# - baixar imagem e texto.
+# - baixar comentarios em txt.
 #
-# 3. Criar template para Mercado Livre
-# - Extrair principais dados
-# - baixar html ou salvar dados em txt
+# 3. Criar template para Mercado Livre.
+# - Extrair principais dados.
+# - baixar html ou salvar dados em txt.
 # 
-# 4. Colocar um botão para baixar as infos e thumb do video manualmente por item
+# 4. Colocar um botão para baixar as infos e thumb do video manualmente por item.
 #
-# 5. Adicionar filtro por tags
+# 5. Adicionar filtro por tags.
 #
-# 6. Corrigir a barra de navegação, tipo: 1 10 20 ... 23 24 25 ... 30 40 43
+# 6. Corrigir a barra de navegação, tipo: 1 10 20 ... 23 24 25 ... 30 40 43.
 #
-# 7. Apagar thumb(e dados) de itens excluidos no banco
+# 7. Apagar thumb(e dados) de itens excluidos no banco.
 # 
-# 8. Colocar o link do canal na foto do Card
+# 8. Colocar o link do canal na foto do Card.
 # 
-# ok 9. Alterar o tamanho da thumb baixada (720p)
+# ok 9. Alterar o tamanho da thumb baixada (720p).
 #
 # 10. Menu de pesquisa, reestilizar, deixar mais compacto.
-#       - Deixar deversos itens, e um botão de pesquisar, que ao clicado se expande e oculta os demais.
+#       - Deixar diversos itens, e um botão de pesquisar, que ao clicado se expande e oculta os demais.
 #       - Quantidade de Itens total.
 #       - Quantidade por pagina.
 #       - Botão de importar itens.
@@ -58,9 +58,9 @@ ft.app(main)
 # ==========================================
 # Melhorias no grupo
 # ==========================================
-# 1. Personalizar capa
+# 1. Personalizar capa.
 #
-# 2. Colocar icone e qtd de itens na capa
+# 2. Colocar icone e qtd de itens na capa.
 #
 # 3. Adição de links individuais.
 #
@@ -78,8 +78,8 @@ ft.app(main)
 # ==========================================
 # Melhorias na tela de importação de arquivos dos grupos
 # ==========================================
-# 1. Permitir a importação de itens duplicados
-# - Atualizar as tags de itens duplicados
+# 1. Permitir a importação de itens duplicados.
+# - Atualizar as tags de itens duplicados.
 #
 # 2. Importar um arquivo e excluir o conteudo já presente em outro grupo
 # ex: Grupo1 tem videos sobre programação, quero impotar um arquivo de todas as abas do chrome
@@ -94,13 +94,13 @@ ft.app(main)
 # ==========================================
 # Melhorias na tela adicionar um link
 # ==========================================
-# 1. Buscar as info da net ao colar um link na pagina de adicionar Tabs
+# ok 1. Buscar as info da net ao colar um link na pagina de adicionar Tabs.
 
 
 # ==========================================
 # Melhorias na tela gerenciamento da fila de Downloads
 # ==========================================
-# 1. Deixar mais com cara de gerenciamentos de downsloads gerais.
+# 1. Deixar mais com cara de gerenciamentos de downloads gerais.
 #
 # 2. Adicionar registro dos downloads de thumbs faltantes.
 #
@@ -120,11 +120,13 @@ ft.app(main)
 # 2. Adicionar sistema de Backup.
 #
 # 3. Substituir Tabs e Videos por group_item, ou vice versa.
+#
+# 4. Implementar historico de items vizualizados e excluidos.
 
 
 #alterações
-#TODO: alterar o deletar tag, para ter uma mensagem desejando altera todos os registros de tabs, ou apenas remover sem altera o banco
-#TODO: Ao clicar em uma tag no gerenciador de tags, abrir a pagina filtrando videos com aquela tag
+#TODO: alterar o deletar tag, para ter uma mensagem desejando altera todos os registros de tabs, ou apenas remover sem altera o banco.
+#TODO: Ao clicar em uma tag no gerenciador de tags, abrir a pagina filtrando videos com aquela tag.
 
 
 # ==========================================
@@ -160,7 +162,29 @@ ft.app(main)
 # - Permitir editar informações dos itens.
 #
 # 5. Revisão e estabilidade
-# - Corrigir suporte a URLs youtu.be.
+# ok - Corrigir suporte a URLs youtu.be.
 # - Revisar Tab.from_dict().
 # - Revisar cache e sincronização entre Home e grupos.
 # - Melhorar tratamento de erros.
+
+
+# ==========================================
+# Proximos passos
+# ==========================================
+# - Home.
+#   - Botão "importar itens".
+#       - Mover para mesma linha do search.
+#       - Tirar o texto, deixar um botão pequeno.
+#   - Colocar a quantidade de itens.
+#       - Minimalista ex: 0 - 50 | 2980.
+# 
+# - Grupos.
+#   - Botão "Adicionar grupo" em Grupos.
+#       - Mover para a esquerda.
+#   - Mover o "Atualizado há" para mesma linha da quantidade de itens.
+#
+# - Grupo (dentro de grupos).
+#   - Mover botão "Importar itens" para a mesma linha do search.
+#   - Reestilizar o botão "Importar itens", deixa-lo pequeno.
+#   - Na mesma linha do título do grupo, colocar um botão para ocultar a descrição.
+#   - Fixar esse menu.

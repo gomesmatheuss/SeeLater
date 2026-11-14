@@ -3,6 +3,7 @@ import flet as ft
 
 from urllib.parse import urlparse
 
+from models.enums.load_status import LoadStatus
 from components.importer.import_preview import ImportPreview
 from components.importer.bulk_tags_dialog import BulkTagsDialog
 from components.importer.import_helpers import (
@@ -528,27 +529,53 @@ class ImportItemsDialog(ft.AlertDialog):
         # ==================================
         # IMPORTAÇÃO PARA UM GRUPO
         # ==================================
-
+        
         else:
 
             group_id = str(self.group["_id"])
 
             for item in selected_items:
 
+                metadata_loaded = (
+                    item.get("metadata_status") == "loaded"
+                )
+
+                media_id = extract_media_id(
+                    item["url"],
+                    item["media_type"]
+                )
+
                 item_data = {
                     "media_type": item["media_type"],
-                    "media_id": extract_media_id(
-                        item["url"],
-                        item["media_type"]
-                    ),
+                    "media_id": media_id,
                     "url": item["url"],
                     "title": item["title"],
-                    "thumbnail_path": None,
+                    "thumbnail_path": (
+                        item.get("thumbnail_path")
+                        if metadata_loaded else None
+                    ),
                     "text": None,
                     "priority": "low",
                     "tags": list(item.get("tags", [])),
-                    "load_status": "json_imported"
+                    "load_status": (
+                        LoadStatus.LOAD_SUCCESS.value
+                        if metadata_loaded
+                        else LoadStatus.JSON_IMPORTED.value
+                    )
                 }
+
+                if metadata_loaded:
+
+                    item_data.update({
+                        "uploader": item.get("uploader"),
+                        "view_count": item.get("view_count"),
+                        "upload_date": item.get("upload_date"),
+                        "duration": item.get("duration"),
+                        "channel_id": item.get("channel_id"),
+                        "channel_thumbnail_path": item.get(
+                            "channel_thumbnail_path"
+                        )
+                    })
 
                 try:
                     save_imported_group_item(

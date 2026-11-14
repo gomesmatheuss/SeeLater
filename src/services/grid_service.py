@@ -1,4 +1,3 @@
-
 from services.video_service import load_card_info
 from services.db_service import (
     get_tabs_list,
