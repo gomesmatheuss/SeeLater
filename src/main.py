@@ -122,6 +122,8 @@ ft.app(main)
 # 3. Substituir Tabs e Videos por group_item, ou vice versa.
 #
 # 4. Implementar historico de items vizualizados e excluidos.
+#
+# 5. Implementar uma especie de estatistica de sites salvos.
 
 
 #alterações
@@ -169,6 +171,28 @@ ft.app(main)
 
 
 # ==========================================
+# Produtos
+# ==========================================
+# - Nova aba no menu.
+#   - Exibição por:
+#       - Todos os itens.
+#       - Itens agrupados. Ex: 5 cortador de grama; 2 parafuso; 2 voltimetro...
+#       - Itens por categoria. Ex: Ferramentas, eletronicos, Produtos de limpeza...
+# - Item no banco com:
+#   - Lista de Imagens.
+#   - Descrição.
+#   - Informações basicas (preço, nome, frete...).
+
+
+# ==========================================
 # Proximos passos
 # ==========================================
+# - Suporte (temporario) ao Mercado livre.
+#
+# - Suporte (temporario) aos tweets.
+#
+# - Suporte ao Shorts.
+# 
+# - Suporte aos canais do youtube.
+#
 # - Remover o grid.py.

@@ -1,5 +1,5 @@
-
 from components.media_cards.youtube_video_card import YouTubeVideoCard
+from components.media_cards.tweet_card import TweetCard
 from components.media_cards.generic_media_card import GenericMediaCard
 
 
@@ -24,6 +24,7 @@ class MediaCardAssembler:
         card_types = {
             "youtube_video": YouTubeVideoCard,
             "youtube_shorts": YouTubeVideoCard,
+            "twitter_tweet": TweetCard,
         }
 
         card_class = card_types.get(media_type, GenericMediaCard)

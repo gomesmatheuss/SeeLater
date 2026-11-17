@@ -1,6 +1,9 @@
 
 import flet as ft
 
+from components.add_tag_dialog import AddTagDialog
+from services.db_service import get_all_tags
+
 
 class BulkTagsDialog:
 
@@ -10,6 +13,8 @@ class BulkTagsDialog:
         self.checkboxes = []
         self.apply_to_all = None
         self.error_text = None
+        self.tag_list_container = None
+        self.tag_dialog = None
 
     def open(self, e=None):
 
@@ -47,35 +52,13 @@ class BulkTagsDialog:
             size=12
         )
 
-        if not self.checkboxes:
+        self.tag_dialog = AddTagDialog(
+            dialog.page,
+            on_saved=self.refresh_tags,
+            on_closed=self.restore_bulk_dialog
+        )
 
-            editor_content = ft.Text(
-                "Nenhuma tag cadastrada.",
-                color=ft.Colors.GREY_400
-            )
-
-        else:
-
-            editor_content = ft.Column(
-                spacing=5,
-                scroll=ft.ScrollMode.AUTO,
-                controls=[
-                    ft.Row(
-                        spacing=8,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                        controls=[
-                            ft.Container(
-                                width=14,
-                                height=14,
-                                border_radius=7,
-                                bgcolor=tag.get("color") or "#2196F3"
-                            ),
-                            checkbox
-                        ]
-                    )
-                    for tag, checkbox in self.checkboxes
-                ]
-            )
+        self.tag_list_container = self.create_tag_list()
 
         dialog.title = ft.Text(
             "Editar Tags dos itens selecionados",
@@ -88,9 +71,23 @@ class BulkTagsDialog:
             content=ft.Column(
                 spacing=12,
                 controls=[
-                    selection_count_text,
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        controls=[
+                            selection_count_text,
+                            ft.TextButton(
+                                "Criar Tag",
+                                icon=ft.Icons.ADD,
+                                on_click=self.open_create_tag
+                            )
+                        ]
+                    ),
+
                     ft.Divider(height=5),
-                    editor_content,
+
+                    self.tag_list_container,
+
                     ft.Divider(height=5),
                     self.apply_to_all,
                     self.error_text
@@ -122,6 +119,89 @@ class BulkTagsDialog:
                 on_click=lambda e: self.save("add")
             )
         ]
+
+        dialog.page.update()
+
+    def create_tag_list(self):
+
+        if not self.checkboxes:
+
+            content = ft.Container(
+                expand=True,
+                alignment=ft.alignment.center,
+                content=ft.Text(
+                    "Nenhuma tag cadastrada.",
+                    color=ft.Colors.GREY_400
+                )
+            )
+
+        else:
+
+            content = ft.ListView(
+                spacing=5,
+                auto_scroll=False,
+                controls=[
+                    ft.Row(
+                        spacing=8,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        controls=[
+                            ft.Container(
+                                width=14,
+                                height=14,
+                                border_radius=7,
+                                bgcolor=tag.get("color") or "#2196F3"
+                            ),
+                            checkbox
+                        ]
+                    )
+                    for tag, checkbox in self.checkboxes
+                ]
+            )
+
+        return ft.Container(
+            height=280,
+            content=content
+        )
+
+    def open_create_tag(self, e):
+
+        dialog = self.dialog
+
+        # Guarda o estado atual do editor.
+        self.bulk_title = dialog.title
+        self.bulk_content = dialog.content
+        self.bulk_actions = dialog.actions
+
+        # Fecha temporariamente o diálogo do importador.
+        dialog.page.close(dialog)
+
+        # Abre a janela de criação de tag.
+        self.tag_dialog.open()
+
+    def refresh_tags(self):
+
+        dialog = self.dialog
+
+        selected_names = {
+            tag["name"]
+            for tag, checkbox in self.checkboxes
+            if checkbox.value
+        }
+
+        dialog.available_tags = get_all_tags()
+
+        self.checkboxes = []
+
+        for tag in dialog.available_tags:
+
+            checkbox = ft.Checkbox(
+                label=tag["name"],
+                value=tag["name"] in selected_names
+            )
+
+            self.checkboxes.append((tag, checkbox))
+
+        self.tag_list_container.content = self.create_tag_list().content
 
         dialog.page.update()
 
@@ -198,3 +278,14 @@ class BulkTagsDialog:
         self.close()
         dialog.content.height = 390
         dialog.update_preview()
+
+    def restore_bulk_dialog(self):
+
+        dialog = self.dialog
+
+        dialog.title = self.bulk_title
+        dialog.content = self.bulk_content
+        dialog.actions = self.bulk_actions
+
+        dialog.page.open(dialog)
+        dialog.page.update()

@@ -199,12 +199,14 @@ def delete_tag(tag_id):
 
 def get_all_tags_with_usage():
     """
-    Retorna todas as tags com a quantidade de vídeos associados.
+    Retorna todas as tags com a quantidade total de ocorrências
+    na Home e em todos os grupos.
     """
 
     tags = get_all_tags()
 
-    usage_results = tabs_collection.aggregate([
+    # Contagem de tags na Home.
+    home_results = tabs_collection.aggregate([
         {"$unwind": "$tags"},
         {
             "$group": {
@@ -214,10 +216,28 @@ def get_all_tags_with_usage():
         }
     ])
 
-    usage = {
-        item["_id"]: item["count"]
-        for item in usage_results
-    }
+    # Contagem de tags nos itens de todos os grupos.
+    group_results = group_items_collection.aggregate([
+        {"$unwind": "$tags"},
+        {
+            "$group": {
+                "_id": "$tags",
+                "count": {"$sum": 1}
+            }
+        }
+    ])
+
+    usage = {}
+
+    for item in home_results:
+        usage[item["_id"]] = item["count"]
+
+    for item in group_results:
+        tag_name = item["_id"]
+
+        usage[tag_name] = (
+            usage.get(tag_name, 0) + item["count"]
+        )
 
     for tag in tags:
         tag["usage_count"] = usage.get(tag["name"], 0)
