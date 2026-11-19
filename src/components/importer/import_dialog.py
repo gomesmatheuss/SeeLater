@@ -65,15 +65,10 @@ class ImportItemsDialog(ft.AlertDialog):
             on_result=self.on_file_selected
         )
 
-        self.file_name = ft.Text(
-            "Nenhum arquivo selecionado",
-            size=12,
-            color=ft.Colors.GREY_400
-        )
-
         self.manual_url_input = ft.TextField(
             label="Adicionar URL",
             hint_text="Cole uma URL aqui...",
+            border=ft.InputBorder.OUTLINE,
             expand=True,
             on_submit=self.add_manual_url
         )
@@ -84,7 +79,7 @@ class ImportItemsDialog(ft.AlertDialog):
             color=ft.Colors.GREY_400,
             max_lines=1,
             overflow=ft.TextOverflow.ELLIPSIS,
-            text_align=ft.TextAlign.CENTER
+            text_align=ft.TextAlign.LEFT
         )
 
         self.selected_count = ft.Text(
@@ -116,20 +111,24 @@ class ImportItemsDialog(ft.AlertDialog):
 
         self.modal = True
         self.title = ft.Text(
-            "Importar itens para o grupo"
+            f'Importar itens para o grupo - {group.get("name", "Grupo")}'
             if self.destination == "group"
             else "Importar itens"
+        )
+
+        self.file_name = ft.Text(
+            "Nenhum arquivo selecionado",
+            size=12,
+            color=ft.Colors.GREY_400,
+            overflow=ft.TextOverflow.ELLIPSIS,
+            expand=True
         )
 
         self.content = ft.Column(
             width=750,
             height=dialog_height,
-            spacing=10,
+            spacing=4,
             controls=[
-                ft.Text(
-                    f'Grupo: {group.get("name", "Grupo")}',
-                    weight=ft.FontWeight.BOLD
-                ) if self.destination == "group" else ft.Container(),
 
                 ft.Row(
                     spacing=10,
@@ -149,43 +148,31 @@ class ImportItemsDialog(ft.AlertDialog):
                     ]
                 ),
 
-                ft.Row(
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    controls=[
-                        self.file_name,
-
-                        ft.Row(
-                            spacing=8,
-                            controls=[
-                                ft.OutlinedButton(
-                                    text="Remover selecionados",
-                                    icon=ft.Icons.DELETE_OUTLINE,
-                                    on_click=self.remove_selected_items
-                                ),
-                                ft.OutlinedButton(
-                                    text="Editar Tags",
-                                    icon=ft.Icons.LABEL,
-                                    on_click=self.open_bulk_tags_editor
-                                )
-                            ]
-                        )
-                    ]
-                ),
-
                 ft.Divider(height=5),
 
                 ft.Row(
-                    spacing=10,
+                    spacing=8,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
                         self.select_all,
 
-                        ft.Container(
-                            content=self.items_count,
-                            expand=True,
-                            alignment=ft.alignment.center
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE_OUTLINE,
+                            icon_color=ft.Colors.RED_400,
+                            tooltip="Remover selecionados",
+                            on_click=self.remove_selected_items
                         ),
+
+                        ft.TextButton(
+                            text="Tags",
+                            icon=ft.Icons.EDIT,
+                            tooltip="Editar tags dos itens selecionados",
+                            on_click=self.open_bulk_tags_editor
+                        ),
+
+                        self.file_name,
+
+                        # ft.Container(expand=True),
 
                         self.selected_count
                     ]
@@ -196,14 +183,33 @@ class ImportItemsDialog(ft.AlertDialog):
         )
 
         self.actions = [
+            ft.Container(
+                content=self.items_count,
+                expand=True
+            ),
+
+            ft.Container(
+                width=50
+            ),
+
             ft.TextButton(
                 "Cancelar",
                 on_click=self.close
             ),
+
             self.import_button
         ]
 
+        self.actions_alignment = ft.MainAxisAlignment.SPACE_BETWEEN
+
         self.actions_alignment = ft.MainAxisAlignment.END
+
+        self.actions_padding = ft.padding.only(
+            left=40,
+            right=40,
+            top=-15,
+            bottom=12
+        )
 
         # Guarda o conteúdo original da janela de importação.
         self.preview_content = self.content

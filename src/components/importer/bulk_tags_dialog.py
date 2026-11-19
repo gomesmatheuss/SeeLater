@@ -179,26 +179,17 @@ class BulkTagsDialog:
         self.tag_dialog.open()
 
     def refresh_tags(self):
-
         dialog = self.dialog
-
-        selected_names = {
-            tag["name"]
-            for tag, checkbox in self.checkboxes
-            if checkbox.value
-        }
 
         dialog.available_tags = get_all_tags()
 
         self.checkboxes = []
 
         for tag in dialog.available_tags:
-
             checkbox = ft.Checkbox(
                 label=tag["name"],
-                value=tag["name"] in selected_names
+                value=False
             )
-
             self.checkboxes.append((tag, checkbox))
 
         self.tag_list_container.content = self.create_tag_list().content

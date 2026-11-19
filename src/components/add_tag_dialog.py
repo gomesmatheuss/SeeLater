@@ -209,19 +209,18 @@ class AddTagDialog:
             else:
                 save_tag(name, color, description)
 
-            self.close(dialog)
-
-            if self.on_saved:
-                self.on_saved()
-
+            self.close(dialog, saved=True)
             self.page.update()
 
         except Exception as ex:
             error_text.value = str(ex)
             self.page.update()
 
-    def close(self, dialog):
+    def close(self, dialog, saved=False):
         self.page.close(dialog)
+
+        if saved and self.on_saved:
+            self.on_saved()
 
         if self.on_closed:
             self.on_closed()

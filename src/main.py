@@ -86,7 +86,7 @@ ft.app(main)
 # para o grupo2, menos os videos sobre programação. Teria um botão de opções avançadas, com a
 # opção "remover conteudo já presente nos grupos: selecionar grupos".
 #
-# 3. Permitir criação de novas Tags na tela de Editar Tags.
+# ok 3. Permitir criação de novas Tags na tela de Editar Tags.
 #
 # 4. Visualizar itens ignorados na importação.
 

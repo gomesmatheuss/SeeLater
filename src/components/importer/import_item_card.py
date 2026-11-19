@@ -56,6 +56,8 @@ class ImportItemCard(ft.Container):
                                 item["url"],
                                 size=11,
                                 color=ft.Colors.GREY_400,
+                                max_lines=2,
+                                overflow=ft.TextOverflow.ELLIPSIS,
                                 selectable=True
                             ),
 
@@ -220,23 +222,33 @@ class ImportItemCard(ft.Container):
             "pending"
         )
 
-        button_labels = {
-            "pending": "Carregar informações",
-            "loading": "Carregando...",
-            "loaded": "Atualizar",
-            "error": "Tentar novamente"
-        }
-
-        return ft.OutlinedButton(
-            text=button_labels.get(
-                status,
+        button_data = {
+            "pending": (
+                ft.Icons.DOWNLOAD,
                 "Carregar informações"
             ),
-            icon=(
-                ft.Icons.DOWNLOAD
-                if status in ("pending", "error")
-                else None
+            "loading": (
+                ft.Icons.HOURGLASS_TOP,
+                "Carregando..."
             ),
+            "loaded": (
+                ft.Icons.REFRESH,
+                "Atualizar informações"
+            ),
+            "error": (
+                ft.Icons.REPLAY,
+                "Tentar novamente"
+            )
+        }
+
+        icon, tooltip = button_data.get(
+            status,
+            button_data["pending"]
+        )
+
+        return ft.IconButton(
+            icon=icon,
+            tooltip=tooltip,
             disabled=(
                 self.item["duplicate"]
                 or status == "loading"
