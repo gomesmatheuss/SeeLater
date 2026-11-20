@@ -149,7 +149,7 @@ class GridService:
         Marca o vídeo como visto no banco de dados.
         """
 
-        set_watched(video.id)
+        set_watched(video["id"])
 
         self.video_cache.clear()
 

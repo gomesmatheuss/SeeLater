@@ -73,6 +73,8 @@ ft.app(main)
 # 7. Mover para o grupo X.
 # 
 # 8. Mover para a home.
+#
+# 9. Botão para exibir items marcados como visto.
 
 
 # ==========================================

@@ -118,7 +118,8 @@ class YouTubeVideoCard(ft.Column):
         self,
         item: dict,
         page: ft.Page,
-        tags=None
+        tags=None,
+        on_mark_watched=None
     ):
         super().__init__()
 
@@ -126,6 +127,8 @@ class YouTubeVideoCard(ft.Column):
         self.page = page
 
         self.tags = tags or []
+        
+        self.on_mark_watched = on_mark_watched
 
         self.width = 280
         self.alignment = ft.MainAxisAlignment.START
@@ -223,7 +226,7 @@ class YouTubeVideoCard(ft.Column):
                                     ft.PopupMenuItem(
                                         text="Marcar Como Visto",
                                         height=30,
-                                        on_click=self.action_not_available
+                                        on_click=self.mark_as_watched
                                     ),
 
                                     ft.PopupMenuItem(
@@ -348,6 +351,13 @@ class YouTubeVideoCard(ft.Column):
             delta=160,
             duration=200
         )
+
+    def mark_as_watched(self, e):
+        if self.on_mark_watched:
+            self.on_mark_watched(self.item)
+
+        else:
+            self.action_not_available(e)
 
     def action_not_available(self, e):
 

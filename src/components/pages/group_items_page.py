@@ -146,7 +146,8 @@ class GroupItemsPage(ft.Column):
         return MediaCardAssembler.create_card(
             item=item,
             page=self.page,
-            tags=self.service.get_item_tags(item)
+            tags=self.service.get_item_tags(item),
+            on_mark_watched=self.confirm_mark_as_watched
         )
 
     # ==================================
@@ -308,3 +309,59 @@ class GroupItemsPage(ft.Column):
         )
 
         self.page.open(dialog)
+
+    # ==================================
+    # MARCADO COMO VISTO
+    # ==================================
+
+    def confirm_mark_as_watched(self, item):
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Marcar como visto"),
+            content=ft.Text(
+                "Deseja realmente marcar este item como visto?"
+            ),
+            actions=[
+                ft.TextButton(
+                    "Cancelar",
+                    on_click=lambda e: self.page.close(dialog)
+                ),
+                ft.TextButton(
+                    "Confirmar",
+                    on_click=lambda e: self.mark_item_as_watched(
+                        item,
+                        dialog
+                    )
+                )
+            ],
+            actions_alignment=ft.MainAxisAlignment.END
+        )
+
+        self.page.open(dialog)
+
+
+    def mark_item_as_watched(self, item, dialog):
+
+        self.page.close(dialog)
+
+        try:
+            self.service.mark_item_as_watched(
+                group_id=str(self.group["_id"]),
+                item_id=str(item["_id"])
+            )
+
+            self.load_items(hard_refresh=True)
+
+        except Exception as e:
+
+            print(f"Erro ao marcar item como visto: {e}")
+
+            self.page.open(
+                ft.SnackBar(
+                    content=ft.Text(
+                        "Não foi possível marcar o item como visto."
+                    ),
+                    open=True
+                )
+            )

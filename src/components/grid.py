@@ -51,7 +51,8 @@ class Grid(ft.Column):
         return MediaCardAssembler.create_card(
             item=video,
             page=self.app_page,
-            tags=self.service.get_video_tags(video)
+            tags=self.service.get_video_tags(video),
+            on_mark_watched=self.confirm_mark_as_watched
         )
 
     # ==================================
@@ -168,3 +169,59 @@ class Grid(ft.Column):
             change_page=True,
             hard_refresh=True
         )
+
+    # ==================================
+    # MARCADO COMO VISTO
+    # ==================================
+
+    def confirm_mark_as_watched(self, video):
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Marcar como visto"),
+            content=ft.Text(
+                "Deseja realmente marcar este vídeo como visto?"
+            ),
+            actions=[
+                ft.TextButton(
+                    "Cancelar",
+                    on_click=lambda e: self.app_page.close(dialog)
+                ),
+                ft.TextButton(
+                    "Confirmar",
+                    on_click=lambda e: self.mark_video_as_watched(
+                        video,
+                        dialog
+                    )
+                )
+            ],
+            actions_alignment=ft.MainAxisAlignment.END
+        )
+
+        self.app_page.open(dialog)
+
+
+    def mark_video_as_watched(self, video, dialog):
+
+        self.app_page.close(dialog)
+
+        try:
+
+            self.service.mark_as_watched(video)
+
+            self.update_cards(
+                hard_refresh=True
+            )
+
+        except Exception as e:
+
+            print(f"Erro ao marcar vídeo como visto: {e}")
+
+            self.app_page.open(
+                ft.SnackBar(
+                    ft.Text(
+                        "Não foi possível marcar o vídeo como visto."
+                    ),
+                    open=True
+                )
+            )

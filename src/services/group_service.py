@@ -3,7 +3,8 @@ from services.db_service import (
     get_group_by_id,
     get_group_items,
     get_all_tags,
-    get_all_videos
+    get_all_videos,
+    update_group_item
 )
 from services.video_service import ensure_video_thumbnail
 
@@ -108,6 +109,10 @@ class GroupService:
                 video_data = videos.get(media_id, {})
 
                 enriched_item = {**video_data, **item}
+
+                # Não exibe itens já marcados como assistidos.
+                if enriched_item.get("load_status") == "watched":
+                    continue
 
                 # Recupera informações do vídeo quando o item do grupo
                 # ainda não possui esses dados.
@@ -291,3 +296,17 @@ class GroupService:
 
         self.tags_by_name.clear()
         self.tags_loaded = False
+
+
+    def mark_item_as_watched(self, group_id, item_id):
+
+        update_group_item(
+            group_id,
+            item_id,
+            {
+                "load_status": LoadStatus.WATCHED.value
+            }
+        )
+
+        # Invalida somente o cache deste grupo.
+        self.items_cache.pop(str(group_id), None)

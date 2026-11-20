@@ -6,7 +6,7 @@ from components.media_cards.generic_media_card import GenericMediaCard
 class MediaCardAssembler:
 
     @staticmethod
-    def create_card(item, page, tags=None):
+    def create_card(item, page, tags=None, on_mark_watched=None):
 
         if isinstance(item, dict):
             item_data = item.copy()
@@ -28,6 +28,14 @@ class MediaCardAssembler:
         }
 
         card_class = card_types.get(media_type, GenericMediaCard)
+
+        if card_class == YouTubeVideoCard:
+            return card_class(
+                item=item_data,
+                page=page,
+                tags=tags,
+                on_mark_watched=on_mark_watched
+            )
 
         return card_class(
             item=item_data,
